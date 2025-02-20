@@ -1,0 +1,21 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Medstack is an bloging website inspired from medium and sub-stack",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node server.js",
+    "nodemon": "nodemon server"
+  },
+  "author": "Krupal Patel",
+  "license": "ISC",
+  "dependencies": {
+    "@koa/router": "^13.1.0",
+    "dotenv": "^16.4.7",
+    "koa": "^2.15.4",
+    "koa-bodyparser": "^4.4.1",
+    "mongodb": "^6.13.0"
+  }
+}
