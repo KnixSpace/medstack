@@ -32,7 +32,7 @@ router.post(
   login
 );
 
-router.patch(
+router.get(
   "/verify-email/:token",
   validate([validateEmailVerified]),
   verifyEmail
