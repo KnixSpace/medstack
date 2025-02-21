@@ -24,6 +24,7 @@ export const isValidCredentials = async (ctx, next) => {
   return next();
 };
 
+//WIP: allowed route validations
 export const isAuthenticated = async (ctx, next) => {
   const token = ctx.headers?.authorization?.split(" ")[1];
   const data = verfyJwtToken(token, process.env.JWT_PASSWORD_KEY);
