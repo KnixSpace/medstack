@@ -2,7 +2,7 @@ import { v4 as uuidV4 } from "uuid";
 import { createSpace, readAllSpaces, updateSpace } from "../db/space.js";
 
 export const addNewSpace = async (ctx) => {
-  const { title, description, isPrivate } = ctx.request.body;
+  const { title, description, isPrivate } = ctx.state.space;
   const { userId } = ctx.request.user;
 
   const space = {
@@ -43,6 +43,6 @@ export const getOwnerSpaces = async (ctx) => {
 
 export const modifySpace = async (ctx) => {
   const { spaceId } = ctx.params;
-  await updateSpace(spaceId, ctx.state.data);
+  await updateSpace(spaceId, ctx.state.space);
   ctx.body = { message: "space updated successfully" };
 };

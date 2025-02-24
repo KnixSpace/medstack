@@ -5,7 +5,7 @@ import {
   modifySpace,
 } from "../controllers/index.js";
 import {
-  validateSapceOwner,
+  validateSpaceOwner,
   validateSpaceDescription,
   validateSpaceModificationData,
   validateSpacePrivacy,
@@ -38,7 +38,7 @@ router.post(
 router.patch(
   "/:spaceId",
   isAuthenticated(["O"]),
-  validate([validateSapceOwner, validateSpaceModificationData]),
+  validate([validateSpaceOwner, validateSpaceModificationData]),
   modifySpace
 );
 
