@@ -6,7 +6,7 @@ import { createUser, updateUser } from "../db/user.js";
 import { sendEmailVerification } from "../emails/auth.js";
 
 export const register = async (ctx) => {
-  const { name, email, password, role, subscribedTags } = ctx.request.body;
+  const { name, email, password, role, subscribedTags } = ctx.state.user;
 
   const user = {
     userId: uuidV4(),
@@ -21,20 +21,20 @@ export const register = async (ctx) => {
   };
 
   await createUser(user);
-  await sendEmailVerification(email, {
-    token: createJwtToken(
-      { userId: user.userId },
-      process.env.JWT_VERIFY_USER_KEY
-    ),
-    userName: user.name,
-  });
+
+  const token = createJwtToken(
+    { userId: user.userId },
+    process.env.JWT_VERIFY_USER_KEY
+  );
+  const verificationLink = `${process.env.BACKEND_URL}/api/v1/auth/verify-email/${token}`;
+  await sendEmailVerification(email, { verificationLink, userName: user.name });
 
   ctx.status = 201;
   ctx.body = { message: "register successfully" };
 };
 
 export const login = async (ctx) => {
-  const { userId, role } = ctx.request.user;
+  const { userId, role } = ctx.state.user;
 
   const token = createJwtToken({ userId, role }, process.env.JWT_PASSWORD_KEY);
 
@@ -44,7 +44,7 @@ export const login = async (ctx) => {
 };
 
 export const verifyEmail = async (ctx) => {
-  const { userId } = ctx.request.user;
+  const { userId } = ctx.state.user;
 
   await updateUser(userId, {
     isVerified: true,
