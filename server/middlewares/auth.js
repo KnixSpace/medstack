@@ -24,27 +24,35 @@ export const isValidCredentials = async (ctx, next) => {
   return next();
 };
 
-export const isAuthenticated = async (ctx, next) => {
-  const token = ctx.headers?.authorization?.split(" ")[1];
-  const data = verfyJwtToken(token, process.env.JWT_PASSWORD_KEY);
+export const isAuthenticated =
+  (roles = null) =>
+  async (ctx, next) => {
+    const token = ctx.headers?.authorization?.split(" ")[1];
+    const data = verfyJwtToken(token, process.env.JWT_PASSWORD_KEY);
 
-  if (!data) {
-    ctx.status = 401;
-    ctx.body = { message: "unauthorized" };
-    return;
-  }
+    if (!data) {
+      ctx.status = 401;
+      ctx.body = { message: "unauthorized" };
+      return;
+    }
 
-  const user = await readUser(
-    { userId: data.userId },
-    { projection: { password: 0 } }
-  );
+    if (roles != null && !roles.includes(data.role)) {
+      ctx.status = 401;
+      ctx.body = { message: "unauthorized" };
+      return;
+    }
 
-  if (!user) {
-    ctx.status = 401;
-    ctx.body = { message: "unauthorized" };
-    return;
-  }
+    const user = await readUser(
+      { userId: data.userId },
+      { projection: { password: 0 } }
+    );
 
-  ctx.request.user = user;
-  return next();
-};
+    if (!user) {
+      ctx.status = 401;
+      ctx.body = { message: "unauthorized" };
+      return;
+    }
+
+    ctx.request.user = user;
+    return next();
+  };
