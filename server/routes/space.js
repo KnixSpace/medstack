@@ -20,13 +20,13 @@ const router = new Router({ prefix: "/api/v1/space" });
 //WIP: update to aggregate piplnie for filtered based search
 router.get("/", getAllSpaces);
 
-router.get("/owner", isAuthenticated, getOwnerSpaces);
+router.get("/owner", isAuthenticated(["O"]), getOwnerSpaces);
 
 //WIP: get complete space details API
 
 router.post(
   "/",
-  isAuthenticated,
+  isAuthenticated(["O"]),
   validate([
     validateSpaceTitle,
     validateSpaceDescription,
@@ -37,7 +37,7 @@ router.post(
 
 router.patch(
   "/:spaceId",
-  isAuthenticated,
+  isAuthenticated(["O"]),
   validate([validateSapceOwner, validateSpaceModificationData]),
   modifySpace
 );
