@@ -15,6 +15,8 @@ export const validateRegisterName = (ctx, errors) => {
     errors.push(
       buildPropertyError("name", "name must be of 1 to 25 characters")
     );
+  } else {
+    ctx.state.user = Object.assign({ name: name.trim() }, ctx.state.user);
   }
 };
 
@@ -30,9 +32,14 @@ export const validateRegisterEmail = async (ctx, errors) => {
   ) {
     errors.push(buildPropertyError("email", "email is not valid"));
   } else if (
-    await readUser({ email }, { projection: { password: 0, name: 0, _id: 0 } })
+    await readUser(
+      { email: email.trim() },
+      { projection: { password: 0, name: 0, _id: 0 } }
+    )
   ) {
     errors.push(buildPropertyError("email", "email is already exists"));
+  } else {
+    ctx.state.user = Object.assign({ email: email.trim() }, ctx.state.user);
   }
 };
 
@@ -43,6 +50,11 @@ export const validateRegisterPassword = (ctx, errors) => {
     errors.push(buildPropertyError("password", "password is required"));
   } else if (typeof password !== "string" || !isValidPassword(password)) {
     errors.push(buildPropertyError("password", "password is not valid"));
+  } else {
+    ctx.state.user = Object.assign(
+      { password: password.trim() },
+      ctx.state.user
+    );
   }
 };
 
@@ -53,6 +65,8 @@ export const validateRegisterRole = (ctx, errors) => {
     errors.push(buildPropertyError("role", "role is required"));
   } else if (!isValidRole(userRole, role)) {
     errors.push(buildPropertyError("role", "role is not a valid"));
+  } else {
+    ctx.state.user = Object.assign({ role }, ctx.state.user);
   }
 };
 
@@ -67,6 +81,8 @@ export const validateLoginEmail = (ctx, errors) => {
     !isValidEmail(email)
   ) {
     errors.push(buildPropertyError("email", "email is not valid"));
+  } else {
+    ctx.state.user = Object.assign({ email: email.trim() }, ctx.state.user);
   }
 };
 
@@ -74,6 +90,11 @@ export const validateLoginPassword = (ctx, errors) => {
   const { password } = ctx.request.body;
   if (password === undefined) {
     errors.push(buildPropertyError("password", "password is required"));
+  } else {
+    ctx.state.user = Object.assign(
+      { password: password.trim() },
+      ctx.state.user
+    );
   }
 };
 
@@ -101,5 +122,5 @@ export const validateEmailVerified = async (ctx, errors) => {
     return;
   }
 
-  ctx.request.user = { userId: data.userId };
+  ctx.state.user = { userId: data.userId };
 };
