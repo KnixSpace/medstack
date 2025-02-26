@@ -16,7 +16,7 @@ export const validateRegisterName = (ctx, errors) => {
       buildPropertyError("name", "name must be of 1 to 25 characters")
     );
   } else {
-    ctx.state.user = Object.assign({ name: name.trim() }, ctx.state.user);
+    ctx.state.shared = Object.assign({ name: name.trim() }, ctx.state.shared);
   }
 };
 
@@ -39,7 +39,7 @@ export const validateRegisterEmail = async (ctx, errors) => {
   ) {
     errors.push(buildPropertyError("email", "email is already exists"));
   } else {
-    ctx.state.user = Object.assign({ email: email.trim() }, ctx.state.user);
+    ctx.state.shared = Object.assign({ email: email.trim() }, ctx.state.shared);
   }
 };
 
@@ -51,9 +51,9 @@ export const validateRegisterPassword = (ctx, errors) => {
   } else if (typeof password !== "string" || !isValidPassword(password)) {
     errors.push(buildPropertyError("password", "password is not valid"));
   } else {
-    ctx.state.user = Object.assign(
+    ctx.state.shared = Object.assign(
       { password: password.trim() },
-      ctx.state.user
+      ctx.state.shared
     );
   }
 };
@@ -66,7 +66,7 @@ export const validateRegisterRole = (ctx, errors) => {
   } else if (!isValidRole(userRole, role)) {
     errors.push(buildPropertyError("role", "role is not a valid"));
   } else {
-    ctx.state.user = Object.assign({ role }, ctx.state.user);
+    ctx.state.shared = Object.assign({ role }, ctx.state.shared);
   }
 };
 
@@ -82,7 +82,7 @@ export const validateLoginEmail = (ctx, errors) => {
   ) {
     errors.push(buildPropertyError("email", "email is not valid"));
   } else {
-    ctx.state.user = Object.assign({ email: email.trim() }, ctx.state.user);
+    ctx.state.shared = Object.assign({ email: email.trim() }, ctx.state.shared);
   }
 };
 
@@ -91,9 +91,9 @@ export const validateLoginPassword = (ctx, errors) => {
   if (password === undefined) {
     errors.push(buildPropertyError("password", "password is required"));
   } else {
-    ctx.state.user = Object.assign(
+    ctx.state.shared = Object.assign(
       { password: password.trim() },
-      ctx.state.user
+      ctx.state.shared
     );
   }
 };
@@ -122,5 +122,5 @@ export const validateEmailVerified = async (ctx, errors) => {
     return;
   }
 
-  ctx.state.user = { userId: data.userId };
+  ctx.state.shared = Object.assign({ userId: data.userId }, ctx.state.shared);
 };

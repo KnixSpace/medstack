@@ -3,7 +3,7 @@ import { verfyJwtToken } from "../utils/jwt.js";
 import { verifyPassword } from "../utils/password.js";
 
 export const isValidCredentials = async (ctx, next) => {
-  const { email, password } = ctx.state.user;
+  const { email, password } = ctx.state.shared;
 
   const user = await readUser({ email });
   if (!user || !(await verifyPassword(password, user.password))) {
@@ -20,7 +20,7 @@ export const isValidCredentials = async (ctx, next) => {
 
   delete user.password;
 
-  ctx.state.user = user;
+  ctx.state.shared = user;
   return next();
 };
 
