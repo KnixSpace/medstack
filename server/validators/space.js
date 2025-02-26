@@ -1,29 +1,51 @@
 import { validate as validateUuid } from "uuid";
 import { buildPropertyError } from "../utils/validate.js";
-import { isSpace } from "../db/space.js";
+import { readSpace } from "../db/space.js";
 
-export const validateSpaceOwner = async (ctx, errors) => {
+export const validateSpaceId = async (ctx, errors) => {
   const { spaceId } = ctx.params;
-  const { userId } = ctx.request.user;
 
   if (!validateUuid(spaceId)) {
-    errors.push(buildPropertyError("spaceId", "invalid space id"));
-  } else if (!(await isSpace({ spaceId, ownerId: userId }))) {
-    errors.push(buildPropertyError("spaceId", "invalid space owner"));
+    errors.push(buildPropertyError("params", "invalid space id"));
+    return;
   }
+
+  const space = await readSpace({ spaceId });
+
+  if (!space) {
+    errors.push(buildPropertyError("params", "no space found"));
+    return;
+  }
+
+  ctx.state.shared = Object.assign({}, space);
+};
+
+export const validateSpaceOwner = async (ctx, errors) => {
+  if (ctx.state.shared === undefined) return;
+
+  const { ownerId } = ctx.state.shared;
+  const { userId } = ctx.request.user;
+
+  if (ownerId !== userId) {
+    errors.push(buildPropertyError("invalid", "invalid access"));
+    return;
+  }
+
+  delete ctx.state.shared;
 };
 
 export const validateSpaceTitle = (ctx, errors) => {
   const { title } = ctx.request.body;
 
   if (title === undefined) {
+    if (ctx.url.includes("update")) return;
     errors.push(buildPropertyError("title", "title is required"));
   } else if (typeof title !== "string") {
     errors.push(buildPropertyError("title", "title must be string"));
   } else if (title.trim().length < 1 || title.trim().split(" ").length > 16) {
     errors.push(buildPropertyError("title", "title must be of 1 to 16 words"));
   } else {
-    ctx.state.space = Object.assign({ title: title.trim() }, ctx.state.space);
+    ctx.state.shared = Object.assign({ title: title.trim() }, ctx.state.shared);
   }
 };
 
@@ -31,22 +53,23 @@ export const validateSpaceDescription = (ctx, errors) => {
   const { description } = ctx.request.body;
 
   if (description === undefined) {
+    if (ctx.url.includes("update")) return;
     errors.push(buildPropertyError("description", "description is required"));
   } else if (typeof description !== "string") {
     errors.push(
       buildPropertyError("description", "description must be string")
     );
   } else if (
-    description.trim().split(" ").length < 5 ||
+    description.trim().split(" ").length < 4 ||
     description.trim().split(" ").length > 64
   ) {
     errors.push(
-      buildPropertyError("description", "description must be of 5 to 64 words")
+      buildPropertyError("description", "description must be of 4 to 64 words")
     );
   } else {
-    ctx.state.space = Object.assign(
+    ctx.state.shared = Object.assign(
       { description: description.trim() },
-      ctx.state.space
+      ctx.state.shared
     );
   }
 };
@@ -54,64 +77,23 @@ export const validateSpaceDescription = (ctx, errors) => {
 export const validateSpacePrivacy = (ctx, errors) => {
   const { isPrivate } = ctx.request.body;
 
-  if (isPrivate !== undefined && typeof isPrivate !== "boolean") {
+  if (isPrivate === undefined) return;
+
+  if (typeof isPrivate !== "boolean") {
     errors.push(buildPropertyError("isPrivate", "must be boolean"));
     return;
-  }
-
-  if (isPrivate !== undefined) {
-    ctx.state.space = Object.assign({ isPrivate }, ctx.state.space);
+  } else {
+    ctx.state.shared = Object.assign({ isPrivate }, ctx.state.shared);
   }
 };
 
 export const validateSpaceModificationData = (ctx, errors) => {
-  const { title, description, isPrivate } = ctx.request.body;
-
   if (Object.keys(ctx.request.body).length === 0) {
     errors.push(buildPropertyError("data", "no data changed"));
     return;
   }
 
-  if (title !== undefined) {
-    if (typeof title !== "string") {
-      errors.push(buildPropertyError("title", "title must be string"));
-    } else if (title.trim().length < 1 || title.trim().split(" ").length > 16) {
-      errors.push(
-        buildPropertyError("title", "title must be of 1 to 16 words")
-      );
-    } else {
-      ctx.state.space = Object.assign({ title: title.trim() }, ctx.state.space);
-    }
-  }
-
-  if (description !== undefined) {
-    if (typeof description !== "string") {
-      errors.push(
-        buildPropertyError("description", "description must be string")
-      );
-    } else if (
-      description.trim().split(" ").length < 5 ||
-      description.trim().split(" ").length > 64
-    ) {
-      errors.push(
-        buildPropertyError(
-          "description",
-          "description must be of 5 to 64 words"
-        )
-      );
-    } else {
-      ctx.state.space = Object.assign(
-        { description: description.trim() },
-        ctx.state.space
-      );
-    }
-  }
-
-  if (isPrivate !== undefined) {
-    if (typeof isPrivate !== "boolean") {
-      errors.push(buildPropertyError("isPrivate", "must be boolean"));
-    } else {
-      ctx.state.space = Object.assign({ isPrivate }, ctx.state.space);
-    }
-  }
+  validateSpaceTitle(ctx, errors);
+  validateSpaceDescription(ctx, errors);
+  validateSpacePrivacy(ctx, errors);
 };
