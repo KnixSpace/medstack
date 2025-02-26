@@ -6,7 +6,7 @@ import { createUser, updateUser } from "../db/user.js";
 import { sendEmailVerification } from "../emails/auth.js";
 
 export const register = async (ctx) => {
-  const { name, email, password, role, subscribedTags } = ctx.state.user;
+  const { name, email, password, role, subscribedTags } = ctx.state.shared;
 
   const user = {
     userId: uuidV4(),
@@ -34,7 +34,7 @@ export const register = async (ctx) => {
 };
 
 export const login = async (ctx) => {
-  const { userId, role } = ctx.state.user;
+  const { userId, role } = ctx.state.shared;
 
   const token = createJwtToken({ userId, role }, process.env.JWT_PASSWORD_KEY);
 
@@ -44,7 +44,7 @@ export const login = async (ctx) => {
 };
 
 export const verifyEmail = async (ctx) => {
-  const { userId } = ctx.state.user;
+  const { userId } = ctx.state.shared;
 
   await updateUser(userId, {
     isVerified: true,
