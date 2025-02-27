@@ -22,10 +22,9 @@ export const validateInviteToken = async (ctx, errors) => {
 };
 
 export const validateInviteId = async (ctx, errors) => {
+  if (ctx.state.shared?.inviteId === undefined) return;
+
   const { inviteId } = ctx.state.shared;
-
-  if (inviteId === undefined) return;
-
   if (!validateUuid(inviteId)) {
     errors.push(buildPropertyError("params", "invalid invite id"));
     return;
@@ -68,6 +67,8 @@ export const validateInviteClientEmail = async (ctx, errors) => {
 };
 
 export const validateInviteClientName = async (ctx, errors) => {
+  if (ctx.state.shared === undefined) return;
+
   const { name } = ctx.request.body;
 
   if (name === undefined) {
@@ -84,6 +85,8 @@ export const validateInviteClientName = async (ctx, errors) => {
 };
 
 export const validateInviteClientPassword = (ctx, errors) => {
+  if (ctx.state.shared === undefined) return;
+
   const { password } = ctx.request.body;
 
   if (password === undefined) {
