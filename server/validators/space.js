@@ -3,35 +3,32 @@ import { buildPropertyError } from "../utils/validate.js";
 import { readSpace } from "../db/space.js";
 
 export const validateSpaceId = async (ctx, errors) => {
-  const { spaceId } = ctx.params;
+  const spaceId = ctx.params.spaceId || ctx.request.body.spaceId;
 
   if (!validateUuid(spaceId)) {
-    errors.push(buildPropertyError("params", "invalid space id"));
+    errors.push(buildPropertyError("space", "invalid space id"));
     return;
   }
 
   const space = await readSpace({ spaceId });
-
   if (!space) {
-    errors.push(buildPropertyError("params", "no space found"));
+    errors.push(buildPropertyError("space", "no space found"));
     return;
   }
 
-  ctx.state.shared = Object.assign({}, space);
+  ctx.state.space = space;
 };
 
 export const validateSpaceOwner = async (ctx, errors) => {
-  if (ctx.state.shared === undefined) return;
+  if (ctx.state.space === undefined) return;
 
-  const { ownerId } = ctx.state.shared;
+  const { ownerId } = ctx.state.space;
   const { userId } = ctx.request.user;
 
   if (ownerId !== userId) {
     errors.push(buildPropertyError("invalid", "invalid access"));
     return;
   }
-
-  delete ctx.state.shared;
 };
 
 export const validateSpaceTitle = (ctx, errors) => {

@@ -32,7 +32,7 @@ export const getOwnerSpaces = async (ctx) => {
 };
 
 export const modifySpace = async (ctx) => {
-  const { spaceId } = ctx.params;
+  const { spaceId } = ctx.state.space;
   await updateSpace(spaceId, ctx.state.shared);
   ctx.body = { message: "space updated successfully" };
 };

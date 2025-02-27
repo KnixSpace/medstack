@@ -20,7 +20,7 @@ const router = new Router({ prefix: "/api/v1/space" });
 router.get("/owner", isAuthenticated(["O"]), getOwnerSpaces);
 
 router.post(
-  "/",
+  "/create",
   isAuthenticated(["O"]),
   validate([
     validateSpaceTitle,
