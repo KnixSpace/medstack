@@ -1,5 +1,5 @@
 import { readUser } from "../db/user.js";
-import { verfyJwtToken } from "../utils/jwt.js";
+import { verifyJwt } from "../utils/jwt.js";
 import { verifyPassword } from "../utils/password.js";
 
 export const isValidCredentials = async (ctx, next) => {
@@ -28,7 +28,7 @@ export const isAuthenticated =
   (roles = null) =>
   async (ctx, next) => {
     const token = ctx.headers?.authorization?.split(" ")[1];
-    const data = verfyJwtToken(token, process.env.JWT_PASSWORD_KEY);
+    const data = verifyJwt(token, process.env.JWT_PASSWORD_KEY);
 
     if (!data) {
       ctx.status = 401;

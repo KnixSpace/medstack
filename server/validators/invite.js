@@ -3,13 +3,13 @@ import { readInvite } from "../db/invite.js";
 import { buildPropertyError } from "../utils/validate.js";
 import { isValidEmail, isValidPassword } from "./common.js";
 import { readUser } from "../db/user.js";
-import { decodeJwt, verfyJwtToken } from "../utils/jwt.js";
+import { decodeJwt, verifyJwt } from "../utils/jwt.js";
 
 export const validateInviteToken = async (ctx, errors) => {
   const { inviteToken } = ctx.params;
 
   if (ctx.url.includes("accept")) {
-    const data = verfyJwtToken(inviteToken, process.env.JWT_CLIENT_INVITE_KEY);
+    const data = verifyJwt(inviteToken, process.env.JWT_CLIENT_INVITE_KEY);
     if (!data) {
       errors.push(buildPropertyError("token", "invalid invite token"));
       return;

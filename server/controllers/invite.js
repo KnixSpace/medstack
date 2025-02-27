@@ -3,7 +3,7 @@ import { userRole } from "../constants/auth.js";
 import { createUser } from "../db/user.js";
 import { createInvite, updateInvite } from "../db/invite.js";
 import { sendClientInvitationEmail } from "../emails/invite.js";
-import { createJwtToken } from "../utils/jwt.js";
+import { generateJwt } from "../utils/jwt.js";
 import { hashPassword } from "../utils/password.js";
 
 export const addNewInvite = async (ctx) => {
@@ -21,7 +21,7 @@ export const addNewInvite = async (ctx) => {
   };
   await createInvite(invite);
 
-  const token = createJwtToken(
+  const token = generateJwt(
     {
       inviteId: invite.inviteId,
     },
@@ -58,8 +58,8 @@ export const acceptInvite = async (ctx) => {
   };
   await createUser(editor);
   await updateInvite(inviteId, { isAccepted: true });
-  
-  const token = createJwtToken(
+
+  const token = generateJwt(
     { userId: editor.userId, role },
     process.env.JWT_PASSWORD_KEY
   );
@@ -71,7 +71,7 @@ export const acceptInvite = async (ctx) => {
 export const resendInvite = async (ctx) => {
   const { inviteId, clientEmail } = ctx.state.shared;
 
-  const token = createJwtToken(
+  const token = generateJwt(
     {
       inviteId,
     },
