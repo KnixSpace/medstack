@@ -1,7 +1,7 @@
 import { v4 as uuidV4 } from "uuid";
 
 import { hashPassword } from "../utils/password.js";
-import { createJwtToken } from "../utils/jwt.js";
+import { generateJwt } from "../utils/jwt.js";
 import { createUser, updateUser } from "../db/user.js";
 import { sendEmailVerification } from "../emails/auth.js";
 
@@ -22,7 +22,7 @@ export const register = async (ctx) => {
 
   await createUser(user);
 
-  const token = createJwtToken(
+  const token = generateJwt(
     { userId: user.userId },
     process.env.JWT_VERIFY_USER_KEY
   );
@@ -36,7 +36,7 @@ export const register = async (ctx) => {
 export const login = async (ctx) => {
   const { userId, role } = ctx.state.shared;
 
-  const token = createJwtToken({ userId, role }, process.env.JWT_PASSWORD_KEY);
+  const token = generateJwt({ userId, role }, process.env.JWT_PASSWORD_KEY);
 
   ctx.status = 201;
   ctx.set("Authorization", `Bearer ${token}`);

@@ -1,6 +1,6 @@
 import { userRole } from "../constants/auth.js";
 import { readUser } from "../db/user.js";
-import { verfyJwtToken } from "../utils/jwt.js";
+import { verifyJwt } from "../utils/jwt.js";
 import { isValidEmail, isValidPassword, isValidRole } from "./common.js";
 import { buildPropertyError } from "../utils/validate.js";
 
@@ -101,7 +101,7 @@ export const validateLoginPassword = (ctx, errors) => {
 export const validateEmailVerified = async (ctx, errors) => {
   const { token } = ctx.params;
 
-  const data = verfyJwtToken(token, process.env.JWT_VERIFY_USER_KEY);
+  const data = verifyJwt(token, process.env.JWT_VERIFY_USER_KEY);
   if (!data) {
     errors.push(buildPropertyError("invalid", "invalid token"));
     return;

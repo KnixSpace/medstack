@@ -1,5 +1,6 @@
 import { login, register, verifyEmail } from "./auth.js";
 import { addNewSpace, getOwnerSpaces, modifySpace } from "./space.js";
+import { addNewInvite, resendInvite, acceptInvite } from "./invite.js";
 
 export {
   login,
@@ -8,4 +9,7 @@ export {
   addNewSpace,
   getOwnerSpaces,
   modifySpace,
+  addNewInvite,
+  resendInvite,
+  acceptInvite,
 };
