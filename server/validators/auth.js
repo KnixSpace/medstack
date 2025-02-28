@@ -3,6 +3,7 @@ import { readUser } from "../db/user.js";
 import { verifyJwt } from "../utils/jwt.js";
 import { isValidEmail, isValidPassword, isValidRole } from "./common.js";
 import { buildPropertyError } from "../utils/validate.js";
+import { readInvite } from "../db/invite.js";
 
 export const validateRegisterName = (ctx, errors) => {
   const { name } = ctx.request.body;
@@ -38,6 +39,8 @@ export const validateRegisterEmail = async (ctx, errors) => {
     )
   ) {
     errors.push(buildPropertyError("email", "email is already exists"));
+  } else if (await readInvite({ clientEmail: email.trim() })) {
+    errors.push(buildPropertyError("email", "email is already exists"));
   } else {
     ctx.state.shared = Object.assign({ email: email.trim() }, ctx.state.shared);
   }
@@ -65,6 +68,8 @@ export const validateRegisterRole = (ctx, errors) => {
     errors.push(buildPropertyError("role", "role is required"));
   } else if (!isValidRole(userRole, role)) {
     errors.push(buildPropertyError("role", "role is not a valid"));
+  } else if (role === userRole.editor) {
+    errors.push(buildPropertyError("role", "editor need invitation"));
   } else {
     ctx.state.shared = Object.assign({ role }, ctx.state.shared);
   }
