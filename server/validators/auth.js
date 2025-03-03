@@ -12,9 +12,9 @@ export const validateRegisterName = (ctx, errors) => {
     errors.push(buildPropertyError("name", "name is required"));
   } else if (typeof name !== "string") {
     errors.push(buildPropertyError("name", "name must be string"));
-  } else if (name.trim().length < 1 || name.trim().length > 25) {
+  } else if (name.trim().length < 1 || name.trim().length > 24) {
     errors.push(
-      buildPropertyError("name", "name must be of 1 to 25 characters")
+      buildPropertyError("name", "name must be of 1 to 24 characters")
     );
   } else {
     ctx.state.shared = Object.assign({ name: name.trim() }, ctx.state.shared);
@@ -33,13 +33,12 @@ export const validateRegisterEmail = async (ctx, errors) => {
   ) {
     errors.push(buildPropertyError("email", "email is not valid"));
   } else if (
-    await readUser(
+    (await readUser(
       { email: email.trim() },
       { projection: { password: 0, name: 0, _id: 0 } }
-    )
+    )) ||
+    (await readInvite({ userEmail: email.trim() }))
   ) {
-    errors.push(buildPropertyError("email", "email is already exists"));
-  } else if (await readInvite({ clientEmail: email.trim() })) {
     errors.push(buildPropertyError("email", "email is already exists"));
   } else {
     ctx.state.shared = Object.assign({ email: email.trim() }, ctx.state.shared);
@@ -66,10 +65,8 @@ export const validateRegisterRole = (ctx, errors) => {
 
   if (role === undefined) {
     errors.push(buildPropertyError("role", "role is required"));
-  } else if (!isValidRole(userRole, role)) {
+  } else if (!isValidRole(userRole, role) || role === userRole.editor) {
     errors.push(buildPropertyError("role", "role is not a valid"));
-  } else if (role === userRole.editor) {
-    errors.push(buildPropertyError("role", "editor need invitation"));
   } else {
     ctx.state.shared = Object.assign({ role }, ctx.state.shared);
   }

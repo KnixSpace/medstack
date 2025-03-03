@@ -1,9 +1,10 @@
 import { v4 as uuidV4 } from "uuid";
 
 import { hashPassword } from "../utils/password.js";
-import { generateJwt } from "../utils/jwt.js";
+import { generateJwt, createJwtEmailVerificationLink } from "../utils/jwt.js";
 import { createUser, updateUser } from "../db/user.js";
 import { sendEmailVerification } from "../emails/auth.js";
+import { frontend } from "../constants/config.js";
 
 export const register = async (ctx) => {
   const { name, email, password, role, subscribedTags } = ctx.state.shared;
@@ -22,11 +23,9 @@ export const register = async (ctx) => {
 
   await createUser(user);
 
-  const token = generateJwt(
-    { userId: user.userId },
-    process.env.JWT_VERIFY_USER_KEY
-  );
-  const verificationLink = `${process.env.BACKEND_URL}/api/v1/auth/verify-email/${token}`;
+  const verificationLink = createJwtEmailVerificationLink({
+    userId: user.userId,
+  });
   await sendEmailVerification(email, { verificationLink, userName: user.name });
 
   ctx.status = 201;
@@ -50,6 +49,5 @@ export const verifyEmail = async (ctx) => {
     isVerified: true,
   });
 
-  ctx.status = 200;
-  ctx.body = { message: "email verified" };
+  ctx.redirect(`${frontend}/login`);
 };
