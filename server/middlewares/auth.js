@@ -52,13 +52,14 @@ export const isAuthenticated =
       return;
     }
 
-    if (
-      data.role === userRole.editor &&
-      !(await readUser({ userId: user.ownerDetails?.ownerId }))
-    ) {
-      ctx.status = 401;
-      ctx.body = { message: "unauthorized" };
-      return;
+    if (data.role === userRole.editor) {
+      const owner = await readUser({ userId: user.ownerDetails?.ownerId });
+      if (!owner) {
+        ctx.status = 401;
+        ctx.body = { message: "unauthorized" };
+        return;
+      }
+      ctx.state.owner = owner;
     }
 
     ctx.request.user = user;

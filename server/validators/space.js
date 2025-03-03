@@ -43,14 +43,14 @@ export const validateSpaceTitle = (ctx, errors) => {
     return;
   }
 
-  const sanitizedTitle = title.trim();
-  if (title.length < 1 || sanitizedTitle.split(/\s+/).length > 16) {
-    errors.push(buildPropertyError("title", "title must be of 1 to 16 words"));
+  const sanitizedTitle = title.trim().split(/\s+/);
+  if (sanitizedTitle.length < 2 || sanitizedTitle.length > 16) {
+    errors.push(buildPropertyError("title", "title must be of 2 to 16 words"));
     return;
   }
 
   ctx.state.shared = Object.assign(
-    { title: sanitizedTitle.split(/\s+/).join(" ") },
+    { title: sanitizedTitle.join(" ") },
     ctx.state.shared
   );
 };
@@ -67,8 +67,11 @@ export const validateSpaceDescription = (ctx, errors) => {
     );
   }
 
-  const sanitizedDescription = description.trim().split(/\s+/);
-  if (sanitizedDescription.length < 4 || sanitizedDescription.length > 64) {
+  const sanitizedDescription = description.trim();
+  if (
+    sanitizedDescription.split(/\s+/).length < 4 ||
+    sanitizedDescription.split(/\s+/).length > 64
+  ) {
     errors.push(
       buildPropertyError("description", "description must be of 4 to 64 words")
     );
@@ -76,7 +79,7 @@ export const validateSpaceDescription = (ctx, errors) => {
   }
 
   ctx.state.shared = Object.assign(
-    { description: sanitizedDescription.join(" ") },
+    { description: sanitizedDescription },
     ctx.state.shared
   );
 };
