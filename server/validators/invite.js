@@ -34,39 +34,39 @@ export const validateInviteId = async (ctx, errors) => {
   if (!invite) {
     errors.push(buildPropertyError("params", "invalid invite"));
   } else {
-    ctx.state.shared = Object.assign(invite, ctx.state.shared);
+    ctx.state.invite = invite;
   }
 };
 
 export const validateInviteAccepted = async (ctx, errors) => {
-  if (ctx.state.shared?.isAccepted === undefined) return;
+  if (ctx.state.invite?.isAccepted === undefined) return;
 
-  if (ctx.state.shared.isAccepted) {
+  if (ctx.state.invite.isAccepted) {
     errors.push(buildPropertyError("invite", "invite already accepted"));
   }
 };
 
-export const validateInviteClientEmail = async (ctx, errors) => {
-  const { clientEmail } = ctx.request.body;
+export const validateInviteUserEmail = async (ctx, errors) => {
+  const { userEmail } = ctx.request.body;
 
-  if (clientEmail === undefined) {
-    errors.push(buildPropertyError("clientEmail", "client email is required"));
-  } else if (!isValidEmail(clientEmail)) {
-    errors.push(buildPropertyError("clientEmail", "not a valid email"));
+  if (userEmail === undefined) {
+    errors.push(buildPropertyError("userEmail", "user email is required"));
+  } else if (!isValidEmail(userEmail)) {
+    errors.push(buildPropertyError("userEmail", "user email is not valid"));
   } else if (
-    (await readInvite({ clientEmail })) ||
-    (await readUser({ email: clientEmail }))
+    (await readInvite({ userEmail })) ||
+    (await readUser({ email: userEmail }))
   ) {
-    errors.push(buildPropertyError("clientEmail", "email already exists"));
+    errors.push(buildPropertyError("userEmail", "user already exists"));
   } else {
     ctx.state.shared = Object.assign(
-      { clientEmail: clientEmail.trim() },
+      { userEmail: userEmail.trim() },
       ctx.state.shared
     );
   }
 };
 
-export const validateInviteClientName = async (ctx, errors) => {
+export const validateInviteUserName = async (ctx, errors) => {
   if (ctx.state.shared === undefined) return;
 
   const { name } = ctx.request.body;
@@ -75,16 +75,16 @@ export const validateInviteClientName = async (ctx, errors) => {
     errors.push(buildPropertyError("name", "name is required"));
   } else if (typeof name !== "string") {
     errors.push(buildPropertyError("name", "name must be string"));
-  } else if (name.trim().length < 1 || name.trim().length > 25) {
+  } else if (name.trim().length < 1 || name.trim().length > 24) {
     errors.push(
-      buildPropertyError("name", "name must be of 1 to 25 characters")
+      buildPropertyError("name", "name must be of 1 to 24 characters")
     );
   } else {
     ctx.state.shared = Object.assign({ name: name.trim() }, ctx.state.shared);
   }
 };
 
-export const validateInviteClientPassword = (ctx, errors) => {
+export const validateInviteUserPassword = (ctx, errors) => {
   if (ctx.state.shared === undefined) return;
 
   const { password } = ctx.request.body;

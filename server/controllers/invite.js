@@ -1,19 +1,25 @@
 import { v4 as uuidV4 } from "uuid";
 import { userRole } from "../constants/auth.js";
 import { createUser } from "../db/user.js";
-import { createInvite, updateInvite } from "../db/invite.js";
-import { sendClientInvitationEmail } from "../emails/invite.js";
-import { generateJwt } from "../utils/jwt.js";
+import { createInvite, readAllInvites, updateInvite } from "../db/invite.js";
+import { sendInvitationEmail } from "../emails/invite.js";
+import { createJwtInvitationLink, generateJwt } from "../utils/jwt.js";
 import { hashPassword } from "../utils/password.js";
+
+export const getAllInvites = async (ctx) => {
+  const { userId: ownerId } = ctx.request.user;
+  const invites = await readAllInvites({ ownerId });
+  ctx.body = invites;
+};
 
 export const addNewInvite = async (ctx) => {
   const { userId: ownerId } = ctx.request.user;
-  const { clientEmail } = ctx.state.shared;
+  const { userEmail } = ctx.state.shared;
 
   const invite = {
     inviteId: uuidV4(),
     ownerId,
-    clientEmail,
+    userEmail,
     role: userRole.editor,
     isAccepted: false,
     createdOn: new Date(),
@@ -21,31 +27,18 @@ export const addNewInvite = async (ctx) => {
   };
   await createInvite(invite);
 
-  const token = generateJwt(
-    {
-      inviteId: invite.inviteId,
-    },
-    process.env.JWT_CLIENT_INVITE_KEY,
-    "2m"
-  );
-  const invitationLink = `${process.env.BACKEND_URL}/api/v1/invite/accept/${token}`;
-  await sendClientInvitationEmail(clientEmail, { invitationLink });
+  const invitationLink = createJwtInvitationLink({ inviteId: invite.inviteId });
+  await sendInvitationEmail(userEmail, { invitationLink });
 
   ctx.status = 201;
   ctx.body = { message: "invite send successfully" };
 };
 
 export const acceptInvite = async (ctx) => {
-  const {
-    inviteId,
-    name,
-    password,
-    role,
-    ownerId,
-    clientEmail: email,
-  } = ctx.state.shared;
+  const { inviteId, role, ownerId, userEmail: email } = ctx.state.invite;
+  const { name, password } = ctx.state.shared;
 
-  const editor = {
+  const user = {
     userId: uuidV4(),
     name,
     email,
@@ -56,11 +49,11 @@ export const acceptInvite = async (ctx) => {
     createdOn: new Date(),
     updatedOn: new Date(),
   };
-  await createUser(editor);
+  await createUser(user);
   await updateInvite(inviteId, { isAccepted: true });
 
   const token = generateJwt(
-    { userId: editor.userId, role },
+    { userId: user.userId, role },
     process.env.JWT_PASSWORD_KEY
   );
   ctx.set("Authorization", `Bearer ${token}`);
@@ -69,17 +62,10 @@ export const acceptInvite = async (ctx) => {
 };
 
 export const resendInvite = async (ctx) => {
-  const { inviteId, clientEmail } = ctx.state.shared;
+  const { inviteId, userEmail } = ctx.state.invite;
 
-  const token = generateJwt(
-    {
-      inviteId,
-    },
-    process.env.JWT_CLIENT_INVITE_KEY,
-    "2m"
-  );
-  const invitationLink = `${process.env.BACKEND_URL}/api/v1/invite/accept/${token}`;
-  await sendClientInvitationEmail(clientEmail, { invitationLink });
+  const invitationLink = createJwtInvitationLink({ inviteId });
+  await sendInvitationEmail(userEmail, { invitationLink });
 
   ctx.body = { message: "invite send successfully" };
 };

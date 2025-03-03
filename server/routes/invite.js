@@ -1,14 +1,15 @@
 import {
   acceptInvite,
   addNewInvite,
+  getAllInvites,
   resendInvite,
 } from "../controllers/index.js";
 import { validate } from "../utils/validate.js";
 import {
   validateInviteAccepted,
-  validateInviteClientEmail,
-  validateInviteClientName,
-  validateInviteClientPassword,
+  validateInviteUserEmail,
+  validateInviteUserName,
+  validateInviteUserPassword,
   validateInviteId,
   validateInviteToken,
 } from "../validators/invite.js";
@@ -17,10 +18,12 @@ import { isAuthenticated } from "../middlewares/auth.js";
 import Router from "@koa/router";
 const router = new Router({ prefix: "/api/v1/invite" });
 
+router.get("/", isAuthenticated(["O"]), getAllInvites);
+
 router.post(
   "/create",
   isAuthenticated(["O"]),
-  validate([validateInviteClientEmail]),
+  validate([validateInviteUserEmail]),
   addNewInvite
 );
 
@@ -30,8 +33,8 @@ router.post(
     validateInviteToken,
     validateInviteId,
     validateInviteAccepted,
-    validateInviteClientName,
-    validateInviteClientPassword,
+    validateInviteUserName,
+    validateInviteUserPassword,
   ]),
   acceptInvite
 );

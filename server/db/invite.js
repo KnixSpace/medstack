@@ -8,6 +8,9 @@ export const createInvite = async (invite) =>
 export const readInvite = async (filter, option) =>
   await inviteCollection.findOne(filter, option);
 
+export const readAllInvites = async (filter, options) =>
+  await inviteCollection.find(filter, options).toArray();
+
 export const updateInvite = async (inviteId, data) =>
   await inviteCollection.updateOne(
     { inviteId },
