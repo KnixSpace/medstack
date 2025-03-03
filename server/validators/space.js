@@ -37,13 +37,22 @@ export const validateSpaceTitle = (ctx, errors) => {
   if (title === undefined) {
     if (ctx.url.includes("update")) return;
     errors.push(buildPropertyError("title", "title is required"));
+    return;
   } else if (typeof title !== "string") {
     errors.push(buildPropertyError("title", "title must be string"));
-  } else if (title.trim().length < 1 || title.trim().split(" ").length > 16) {
-    errors.push(buildPropertyError("title", "title must be of 1 to 16 words"));
-  } else {
-    ctx.state.shared = Object.assign({ title: title.trim() }, ctx.state.shared);
+    return;
   }
+
+  const sanitizedTitle = title.trim();
+  if (title.length < 1 || sanitizedTitle.split(/\s+/).length > 16) {
+    errors.push(buildPropertyError("title", "title must be of 1 to 16 words"));
+    return;
+  }
+
+  ctx.state.shared = Object.assign(
+    { title: sanitizedTitle.split(/\s+/).join(" ") },
+    ctx.state.shared
+  );
 };
 
 export const validateSpaceDescription = (ctx, errors) => {
@@ -56,19 +65,20 @@ export const validateSpaceDescription = (ctx, errors) => {
     errors.push(
       buildPropertyError("description", "description must be string")
     );
-  } else if (
-    description.trim().split(" ").length < 4 ||
-    description.trim().split(" ").length > 64
-  ) {
+  }
+
+  const sanitizedDescription = description.trim().split(/\s+/);
+  if (sanitizedDescription.length < 4 || sanitizedDescription.length > 64) {
     errors.push(
       buildPropertyError("description", "description must be of 4 to 64 words")
     );
-  } else {
-    ctx.state.shared = Object.assign(
-      { description: description.trim() },
-      ctx.state.shared
-    );
+    return;
   }
+
+  ctx.state.shared = Object.assign(
+    { description: sanitizedDescription.join(" ") },
+    ctx.state.shared
+  );
 };
 
 export const validateSpacePrivacy = (ctx, errors) => {

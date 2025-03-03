@@ -2,6 +2,7 @@ export const isValidEmail = (email) =>
   /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim());
 
 export const isValidPassword = (password) =>
+  password.trim().split(/\s+/).length === 1 &&
   password.trim().length > 8 &&
   password.trim().length < 16 &&
   /[A-Z]/.test(password) &&

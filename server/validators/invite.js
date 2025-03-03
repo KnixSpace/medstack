@@ -73,15 +73,26 @@ export const validateInviteUserName = async (ctx, errors) => {
 
   if (name === undefined) {
     errors.push(buildPropertyError("name", "name is required"));
+    return;
   } else if (typeof name !== "string") {
     errors.push(buildPropertyError("name", "name must be string"));
-  } else if (name.trim().length < 1 || name.trim().length > 24) {
+    return;
+  }
+
+  const sanitizedName = name.trim();
+  if (sanitizedName.split(/\s+/).length > 1) {
+    errors.push(buildPropertyError("name", "no space should be in name"));
+    return;
+  }
+
+  if (sanitizedName.length < 1 || sanitizedName.length > 24) {
     errors.push(
       buildPropertyError("name", "name must be of 1 to 24 characters")
     );
-  } else {
-    ctx.state.shared = Object.assign({ name: name.trim() }, ctx.state.shared);
+    return;
   }
+
+  ctx.state.shared = Object.assign({ name: sanitizedName }, ctx.state.shared);
 };
 
 export const validateInviteUserPassword = (ctx, errors) => {
