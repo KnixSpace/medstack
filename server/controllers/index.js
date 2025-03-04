@@ -1,15 +1,35 @@
 import { login, register, verifyEmail } from "./auth.js";
+import {
+  addNewInvite,
+  resendInvite,
+  acceptInvite,
+  getAllInvites,
+} from "./invite.js";
 import { addNewSpace, getOwnerSpaces, modifySpace } from "./space.js";
-import { addNewInvite, resendInvite, acceptInvite } from "./invite.js";
+import {
+  addNewThread,
+  getAllPendingReviewThread,
+  approveToPublishThread,
+  sendbackThread,
+  resendToPublishThread,
+  modifyThread,
+} from "./thread.js";
 
 export {
   login,
   register,
   verifyEmail,
-  addNewSpace,
-  getOwnerSpaces,
-  modifySpace,
+  getAllInvites,
   addNewInvite,
   resendInvite,
   acceptInvite,
+  addNewSpace,
+  getOwnerSpaces,
+  modifySpace,
+  addNewThread,
+  getAllPendingReviewThread,
+  approveToPublishThread,
+  sendbackThread,
+  resendToPublishThread,
+  modifyThread,
 };
