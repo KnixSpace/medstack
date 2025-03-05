@@ -1,6 +1,8 @@
 import { v4 as uuidV4 } from "uuid";
 import {
   createSpace,
+  readAllSpaces,
+  readSpacesWithSubscriberCounts,
   updateSpace,
 } from "../db/space.js";
 import {
@@ -27,6 +29,31 @@ export const addNewSpace = async (ctx) => {
   await createSpace(space);
 
   ctx.body = { message: "new space created" };
+};
+
+export const getOwnerSpacesWithSubscribersCount = async (ctx) => {
+  const ownerId = ctx.request.user.userId;
+  const spaces = await readSpacesWithSubscriberCounts(ownerId);
+  if (!spaces.length) {
+    ctx.body = { message: "no space found" };
+    return;
+  }
+  ctx.body = spaces;
+};
+
+export const getNamesOfOwnerSpaces = async (ctx) => {
+  const ownerId = ctx.state.owner.userId;
+  const spaces = await readAllSpaces(
+    { ownerId },
+    { projection: { spaceId: 1, title: 1 } }
+  );
+
+  if (!spaces.length) {
+    ctx.body = { message: "no space found" };
+    return;
+  }
+
+  ctx.body = spaces;
 };
 
 export const getSpaceSubscribers = async (ctx) => {

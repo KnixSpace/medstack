@@ -7,11 +7,13 @@ import {
 } from "./invite.js";
 import {
   addNewSpace,
+  getNamesOfOwnerSpaces,
   modifySpace,
   subscribeSpace,
   unsubscribeSpace,
   toggleSpaceNewsletter,
   getUserSubscribedSpaces,
+  getOwnerSpacesWithSubscribersCount,
   getSpaceSubscribers,
 } from "./space.js";
 import {
@@ -32,11 +34,13 @@ export {
   resendInvite,
   acceptInvite,
   addNewSpace,
+  getNamesOfOwnerSpaces,
   modifySpace,
   subscribeSpace,
   unsubscribeSpace,
   toggleSpaceNewsletter,
   getUserSubscribedSpaces,
+  getOwnerSpacesWithSubscribersCount,
   getSpaceSubscribers,
   addNewThread,
   getAllPendingReviewThread,
