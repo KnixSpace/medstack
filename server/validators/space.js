@@ -1,6 +1,7 @@
 import { validate as validateUuid } from "uuid";
 import { buildPropertyError } from "../utils/validate.js";
 import { readSpace } from "../db/space.js";
+import { readSubscription } from "../db/subscription.js";
 
 export const validateSpaceId = async (ctx, errors) => {
   const spaceId = ctx.params.spaceId || ctx.request.body.spaceId;
@@ -29,6 +30,33 @@ export const validateSpaceOwner = async (ctx, errors) => {
     errors.push(buildPropertyError("invalid", "invalid access"));
     return;
   }
+};
+
+export const validateSpaceSubscription = async (ctx, errors) => {
+  if (ctx.state.space?.spaceId === undefined) return;
+
+  const spaceId = ctx.state.space.spaceId;
+  const userId = ctx.request.user.userId;
+  const subscription = await readSubscription({ spaceId, userId });
+
+  if (ctx.url.includes("/subscribe") && subscription) {
+    errors.push(
+      buildPropertyError("invalid", "already subscribed to this space")
+    );
+    return;
+  }
+
+  if (ctx.url.includes("/unsubscribe") && !subscription) {
+    errors.push(buildPropertyError("invalid", "no subscription found"));
+    return;
+  }
+
+  if (ctx.url.includes("/newsletter") && !subscription) {
+    errors.push(buildPropertyError("invalid", "no subscription found"));
+    return;
+  }
+
+  ctx.state.subscription = subscription;
 };
 
 export const validateSpaceTitle = (ctx, errors) => {

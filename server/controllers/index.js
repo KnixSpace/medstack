@@ -5,7 +5,15 @@ import {
   acceptInvite,
   getAllInvites,
 } from "./invite.js";
-import { addNewSpace, getOwnerSpaces, modifySpace } from "./space.js";
+import {
+  addNewSpace,
+  modifySpace,
+  subscribeSpace,
+  unsubscribeSpace,
+  toggleSpaceNewsletter,
+  getUserSubscribedSpaces,
+  getSpaceSubscribers,
+} from "./space.js";
 import {
   addNewThread,
   getAllPendingReviewThread,
@@ -24,8 +32,12 @@ export {
   resendInvite,
   acceptInvite,
   addNewSpace,
-  getOwnerSpaces,
   modifySpace,
+  subscribeSpace,
+  unsubscribeSpace,
+  toggleSpaceNewsletter,
+  getUserSubscribedSpaces,
+  getSpaceSubscribers,
   addNewThread,
   getAllPendingReviewThread,
   approveToPublishThread,
