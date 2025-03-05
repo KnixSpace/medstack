@@ -1,4 +1,4 @@
-import { userRole } from "../constants/auth.js";
+import { userRole } from "../constants/enums.js";
 import { readUser } from "../db/user.js";
 import { verifyJwt } from "../utils/jwt.js";
 import { isValidEmail, isValidPassword, isValidRole } from "./common.js";

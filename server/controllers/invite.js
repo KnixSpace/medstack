@@ -1,5 +1,5 @@
 import { v4 as uuidV4 } from "uuid";
-import { userRole } from "../constants/auth.js";
+import { userRole } from "../constants/enums.js";
 import { createUser } from "../db/user.js";
 import { createInvite, readAllInvites, updateInvite } from "../db/invite.js";
 import { sendInvitationEmail } from "../emails/invite.js";

@@ -1,5 +1,5 @@
 import { v4 as uuidV4 } from "uuid";
-import { threadStatus } from "../constants/thread.js";
+import { threadStatus } from "../constants/enums.js";
 import { createThread, readAllThreads, updateThread } from "../db/thread.js";
 import {
   sendbackThreadForUpadte,

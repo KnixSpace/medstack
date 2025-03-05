@@ -3,7 +3,7 @@ import { buildPropertyError } from "../utils/validate.js";
 import { readThread } from "../db/thread.js";
 import { readSpace } from "../db/space.js";
 import { readUser } from "../db/user.js";
-import { userRole } from "../constants/auth.js";
+import { userRole } from "../constants/enums.js";
 
 export const validateThreadId = async (ctx, errors) => {
   const threadId = ctx.params.threadId;
