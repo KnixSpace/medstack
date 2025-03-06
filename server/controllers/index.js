@@ -23,6 +23,9 @@ import {
   sendbackThread,
   resendToPublishThread,
   modifyThread,
+  toggleThreadInteraction,
+  addThreadComment,
+  removeThreadComment,
 } from "./thread.js";
 
 export {
@@ -48,4 +51,7 @@ export {
   sendbackThread,
   resendToPublishThread,
   modifyThread,
+  toggleThreadInteraction,
+  addThreadComment,
+  removeThreadComment,
 };

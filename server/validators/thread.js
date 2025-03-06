@@ -3,7 +3,12 @@ import { buildPropertyError } from "../utils/validate.js";
 import { readThread } from "../db/thread.js";
 import { readSpace } from "../db/space.js";
 import { readUser } from "../db/user.js";
-import { userRole } from "../constants/enums.js";
+import {
+  interactionTypes,
+  threadStatus,
+  userRole,
+} from "../constants/enums.js";
+import { readComment } from "../db/comment.js";
 
 export const validateThreadId = async (ctx, errors) => {
   const threadId = ctx.params.threadId;
@@ -39,6 +44,15 @@ export const validateThreadSpace = async (ctx, errors) => {
   }
 
   ctx.state.space = space;
+};
+
+export const validateThreadIsPublished = async (ctx, errors) => {
+  if (ctx.state.thread === undefined) return;
+
+  if (ctx.state.thread.status !== threadStatus.published) {
+    errors.push(buildPropertyError("thread", "thread is not published"));
+    return;
+  }
 };
 
 export const validateThreadOwnership = async (ctx, errors) => {
@@ -98,6 +112,116 @@ export const validateThreadTitle = (ctx, errors) => {
 
   ctx.state.shared = Object.assign(
     { title: sanitizedTitle.join(" ") },
+    ctx.state.shared
+  );
+};
+
+export const validateThreadInteraction = (ctx, errors) => {
+  const { interaction } = ctx.query;
+
+  if (interaction === undefined) {
+    errors.push(buildPropertyError("query", "invalid query"));
+    return;
+  }
+
+  if (!interactionTypes.includes(interaction)) {
+    errors.push(buildPropertyError("query", "invalid query"));
+    return;
+  }
+  ctx.state.shared = Object.assign({ interaction }, ctx.state.shared);
+};
+
+export const validateThreadCommentId = async (ctx, errors) => {
+  const { commentId } = ctx.params;
+
+  if (!commentId || !validateUuid(commentId)) {
+    errors.push(buildPropertyError("params", "Invalid commentId or params"));
+    return;
+  }
+
+  const comment = await readComment({ commentId });
+  if (!comment) {
+    errors.push(buildPropertyError("commentId", "invlaid commentId"));
+    return;
+  }
+  ctx.state.comment = comment;
+};
+
+export const validateThreadParentCommentId = async (ctx, errors) => {
+  if (!ctx.state.thread) return;
+
+  const { parentId } = ctx.query;
+  const { threadId } = ctx.state.thread;
+
+  if (!parentId || !validateUuid(parentId)) {
+    errors.push(buildPropertyError("params", "Invalid commentId or params"));
+    return;
+  }
+
+  const comment = await readComment({ commentId: parentId });
+  if (!comment) {
+    errors.push(buildPropertyError("commentId", "invlaid parent commentId"));
+    return;
+  }
+
+  if (comment.parentId) {
+    errors.push(
+      buildPropertyError("commentId", "child comment cannot be parent")
+    );
+    return;
+  }
+
+  if (comment.threadId !== threadId) {
+    errors.push(
+      buildPropertyError(
+        "commentId",
+        "parent comment does not belong to the thread"
+      )
+    );
+    return;
+  }
+
+  ctx.state.shared = Object.assign({ parentId }, ctx.state.shared);
+};
+
+export const validateThreadCommentOwnership = async (ctx, errors) => {
+  if (ctx.state.comment === undefined) return;
+
+  const { userId, role } = ctx.request.user;
+  const { userId: commentUserId } = ctx.state.comment;
+
+  if (
+    [userRole.editor, userRole.user].includes(role) &&
+    userId !== commentUserId
+  ) {
+    errors.push(buildPropertyError("unauthorized", "invlaid access"));
+    return;
+  }
+};
+
+export const validateThreadCommentContent = (ctx, errors) => {
+  const { content } = ctx.request.body;
+
+  if (content === undefined) {
+    errors.push(buildPropertyError("content", "comment content required"));
+    return;
+  } else if (typeof content !== "string") {
+    errors.push(
+      buildPropertyError("content", "comment content must be string")
+    );
+    return;
+  }
+
+  const sanitizedContent = content.trim();
+  if (sanitizedContent.length < 1 || sanitizedContent.split(/s+/).length > 16) {
+    errors.push(
+      buildPropertyError("content", "comment content be 1 to 16 words")
+    );
+    return;
+  }
+
+  ctx.state.shared = Object.assign(
+    { content: sanitizedContent },
     ctx.state.shared
   );
 };

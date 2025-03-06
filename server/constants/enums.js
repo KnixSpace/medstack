@@ -10,3 +10,5 @@ export const threadStatus = Object.freeze({
   revision: "R",
   published: "P",
 });
+
+export const interactionTypes = ["like", "unlike"];
