@@ -8,6 +8,8 @@ import {
 } from "../emails/threads.js";
 import { frontend } from "../constants/config.js";
 import { readUser } from "../db/user.js";
+import { updateInteraction } from "../db/interaction.js";
+import { createComment, deleteComments } from "../db/comment.js";
 
 export const addNewThread = async (ctx) => {
   const { spaceId, ownerId } = ctx.state.space;
@@ -99,4 +101,36 @@ export const modifyThread = async (ctx) => {
   const { threadId } = ctx.state.thread;
   await updateThread(threadId, ctx.state.shared);
   ctx.body = { message: "thread updated successfully" };
+};
+
+export const toggleThreadInteraction = async (ctx) => {
+  const { userId } = ctx.request.user;
+  const { threadId } = ctx.state.thread;
+  const { interaction } = ctx.state.shared;
+
+  await updateInteraction(userId, threadId, interaction);
+  ctx.body = { message: `thread ${interaction}` };
+};
+
+export const addThreadComment = async (ctx) => {
+  const { userId } = ctx.request.user;
+  const { threadId } = ctx.state.thread;
+
+  const comment = {
+    commentId: uuidV4(),
+    threadId,
+    userId,
+    ...ctx.state.shared,
+    createdOn: new Date(),
+    updatedOn: new Date(),
+  };
+  await createComment(comment);
+  ctx.body = { message: "comment added" };
+};
+
+export const removeThreadComment = async (ctx) => {
+  const commentId = ctx.state.comment.commentId;
+
+  await deleteComments(commentId);
+  ctx.body = { message: "comment deleted" };
 };

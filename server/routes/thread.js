@@ -6,6 +6,9 @@ import {
   modifyThread,
   resendToPublishThread,
   sendbackThread,
+  toggleThreadInteraction,
+  addThreadComment,
+  removeThreadComment,
 } from "../controllers/index.js";
 import { validate } from "../utils/validate.js";
 import {
@@ -13,11 +16,17 @@ import {
   validateThreadEditor,
   validateThreadId,
   validateThreadIsApprovedToPublished,
+  validateThreadIsPublished,
   validateThreadModificationData,
   validateThreadOwnership,
   validateThreadSpace,
   validateThreadTags,
   validateThreadTitle,
+  validateThreadInteraction,
+  validateThreadCommentContent,
+  validateThreadCommentId,
+  validateThreadCommentOwnership,
+  validateThreadParentCommentId,
 } from "../validators/thread.js";
 
 import Router from "@koa/router";
@@ -85,6 +94,50 @@ router.post(
     validateThreadIsApprovedToPublished,
   ]),
   resendToPublishThread
+);
+
+router.post(
+  "/like/:threadId",
+  isAuthenticated(["U"]),
+  validate([
+    validateThreadId,
+    validateThreadIsPublished,
+    validateThreadSpace,
+    validateThreadInteraction,
+  ]),
+  toggleThreadInteraction
+);
+
+router.post(
+  "/comment/:threadId",
+  isAuthenticated(),
+  validate([
+    validateThreadId,
+    validateThreadIsPublished,
+    validateThreadSpace,
+    validateThreadCommentContent,
+  ]),
+  addThreadComment
+);
+
+router.post(
+  "/comment/reply/:threadId",
+  isAuthenticated(),
+  validate([
+    validateThreadId,
+    validateThreadIsPublished,
+    validateThreadSpace,
+    validateThreadCommentContent,
+    validateThreadParentCommentId,
+  ]),
+  addThreadComment
+);
+
+router.delete(
+  "/comment/:commentId",
+  isAuthenticated(),
+  validate([validateThreadCommentId, validateThreadCommentOwnership]),
+  removeThreadComment
 );
 
 export default router;
