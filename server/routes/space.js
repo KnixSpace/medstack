@@ -23,7 +23,7 @@ const router = new Router({ prefix: "/api/v1/space" });
 
 router.post(
   "/create",
-  isAuthenticated(["O"]),
+  isAuthenticated("O"),
   validate([
     validateSpaceTitle,
     validateSpaceDescription,
@@ -34,7 +34,7 @@ router.post(
 
 router.post(
   "/update/:spaceId",
-  isAuthenticated(["O"]),
+  isAuthenticated("O"),
   validate([
     validateSpaceId,
     validateSpaceOwner,
@@ -45,7 +45,7 @@ router.post(
 
 router.post(
   "/subscribe/:spaceId",
-  isAuthenticated(["U"]),
+  isAuthenticated("U"),
   validate([validateSpaceId, validateSpaceSubscription]),
   subscribeSpace
 );
@@ -59,14 +59,14 @@ router.get(
 
 router.post(
   "/unsubscribe/:spaceId",
-  isAuthenticated(["U"]),
+  isAuthenticated("U"),
   validate([validateSpaceId, validateSpaceSubscription]),
   unsubscribeSpace
 );
 
 router.post(
   "/newsletter/:spaceId",
-  isAuthenticated(["U"]),
+  isAuthenticated("U"),
   validate([validateSpaceId, validateSpaceSubscription]),
   toggleSpaceNewsletter
 );

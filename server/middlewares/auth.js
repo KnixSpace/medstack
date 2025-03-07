@@ -26,7 +26,7 @@ export const isValidCredentials = async (ctx, next) => {
 };
 
 export const isAuthenticated =
-  (roles = null) =>
+  (...roles) =>
   async (ctx, next) => {
     const token = ctx.headers?.authorization?.split(" ")[1];
     const data = verifyJwt(token, process.env.JWT_PASSWORD_KEY);
@@ -36,7 +36,7 @@ export const isAuthenticated =
       return;
     }
 
-    if (roles != null && !roles.includes(data.role)) {
+    if (roles.length && !roles.includes(data.role)) {
       ctx.status = 401;
       ctx.body = { message: "unauthorized" };
       return;

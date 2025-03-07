@@ -7,13 +7,13 @@ import {
 import { isAuthenticated } from "../middlewares/auth.js";
 const router = new Router({ prefix: "/api/v1/user" });
 
-router.get("/subscriptions", isAuthenticated(["U"]), getUserSubscribedSpaces);
+router.get("/subscriptions", isAuthenticated("U"), getUserSubscribedSpaces);
 
 router.get(
   "/owner/spaces",
-  isAuthenticated(["O"]),
+  isAuthenticated("O"),
   getOwnerSpacesWithSubscribersCount
 );
-router.get("/owner/spaces/name", isAuthenticated(["E"]), getNamesOfOwnerSpaces);
+router.get("/owner/spaces/name", isAuthenticated("E"), getNamesOfOwnerSpaces);
 
 export default router;

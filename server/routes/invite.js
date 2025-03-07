@@ -18,11 +18,11 @@ import { isAuthenticated } from "../middlewares/auth.js";
 import Router from "@koa/router";
 const router = new Router({ prefix: "/api/v1/invite" });
 
-router.get("/", isAuthenticated(["O"]), getAllInvites);
+router.get("/", isAuthenticated("O"), getAllInvites);
 
 router.post(
   "/create",
-  isAuthenticated(["O"]),
+  isAuthenticated("O"),
   validate([validateInviteUserEmail]),
   addNewInvite
 );

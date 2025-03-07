@@ -32,11 +32,11 @@ import {
 import Router from "@koa/router";
 const router = new Router({ prefix: "/api/v1/thread" });
 
-router.get("/review", isAuthenticated(["O", "E"]), getAllPendingReviewThread);
+router.get("/review", isAuthenticated("O", "E"), getAllPendingReviewThread);
 
 router.post(
   "/create",
-  isAuthenticated(["E"]),
+  isAuthenticated("E"),
   validate([
     validateThreadSpace,
     validateThreadOwnership,
@@ -49,7 +49,7 @@ router.post(
 
 router.post(
   "/publish/:threadId",
-  isAuthenticated(["O"]),
+  isAuthenticated("O"),
   validate([
     validateThreadId,
     validateThreadSpace,
@@ -61,7 +61,7 @@ router.post(
 
 router.post(
   "/revise/:threadId",
-  isAuthenticated(["O"]),
+  isAuthenticated("O"),
   validate([
     validateThreadId,
     validateThreadSpace,
@@ -74,7 +74,7 @@ router.post(
 
 router.post(
   "/update/:threadId",
-  isAuthenticated(["E"]),
+  isAuthenticated("E"),
   validate([
     validateThreadId,
     validateThreadSpace,
@@ -86,7 +86,7 @@ router.post(
 
 router.post(
   "/resend/:threadId",
-  isAuthenticated(["E"]),
+  isAuthenticated("E"),
   validate([
     validateThreadId,
     validateThreadSpace,
@@ -98,7 +98,7 @@ router.post(
 
 router.post(
   "/like/:threadId",
-  isAuthenticated(["U"]),
+  isAuthenticated("U"),
   validate([
     validateThreadId,
     validateThreadIsPublished,
