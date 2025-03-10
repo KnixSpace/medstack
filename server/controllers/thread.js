@@ -1,6 +1,11 @@
 import { v4 as uuidV4 } from "uuid";
 import { threadStatus } from "../constants/enums.js";
-import { createThread, readAllThreads, updateThread } from "../db/thread.js";
+import {
+  createThread,
+  readAllThreads,
+  readThreadDetails,
+  updateThread,
+} from "../db/thread.js";
 import {
   sendbackThreadForUpadte,
   sendThreadApprovedNotification,
@@ -8,8 +13,13 @@ import {
 } from "../emails/threads.js";
 import { frontend } from "../constants/config.js";
 import { readUser } from "../db/user.js";
-import { updateInteraction } from "../db/interaction.js";
-import { createComment, deleteComments } from "../db/comment.js";
+import { readThreadIntractions, updateInteraction } from "../db/interaction.js";
+import {
+  createComment,
+  deleteComments,
+  readThreadComments,
+  readThreadCommentReplies,
+} from "../db/comment.js";
 
 export const addNewThread = async (ctx) => {
   const { spaceId, ownerId } = ctx.state.space;
@@ -133,4 +143,29 @@ export const removeThreadComment = async (ctx) => {
 
   await deleteComments(commentId);
   ctx.body = { message: "comment deleted" };
+};
+
+export const getThread = async (ctx) => {
+  const { threadId } = ctx.state.thread;
+  const thread = await readThreadDetails(threadId);
+  ctx.body = thread[0];
+};
+
+export const getThreadInteractions = async (ctx) => {
+  const { threadId } = ctx.state.thread;
+  const interactions = await readThreadIntractions(threadId);
+  ctx.body = interactions;
+};
+
+export const getThreadComments = async (ctx) => {
+  const { threadId } = ctx.state.thread;
+  const comments = await readThreadComments(threadId);
+  ctx.body = comments;
+};
+
+export const getThreadCommentReplies = async (ctx) => {
+  const { threadId } = ctx.state.thread;
+  const { parentId } = ctx.state.shared;
+  const replies = await readThreadCommentReplies(threadId, parentId);
+  ctx.body = replies;
 };

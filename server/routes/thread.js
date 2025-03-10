@@ -9,6 +9,10 @@ import {
   toggleThreadInteraction,
   addThreadComment,
   removeThreadComment,
+  getThread,
+  getThreadInteractions,
+  getThreadComments,
+  getThreadCommentReplies,
 } from "../controllers/index.js";
 import { validate } from "../utils/validate.js";
 import {
@@ -32,8 +36,6 @@ import {
 import Router from "@koa/router";
 const router = new Router({ prefix: "/api/v1/thread" });
 
-router.get("/review", isAuthenticated("O", "E"), getAllPendingReviewThread);
-
 router.post(
   "/create",
   isAuthenticated("E"),
@@ -45,6 +47,12 @@ router.post(
     validateThreadTags,
   ]),
   addNewThread
+);
+
+router.get(
+  "/list/pending-review",
+  isAuthenticated("O", "E"),
+  getAllPendingReviewThread
 );
 
 router.post(
@@ -97,8 +105,8 @@ router.post(
 );
 
 router.post(
-  "/like/:threadId",
-  isAuthenticated("U"),
+  "/interact/:threadId",
+  isAuthenticated(),
   validate([
     validateThreadId,
     validateThreadIsPublished,
@@ -139,5 +147,30 @@ router.delete(
   validate([validateThreadCommentId, validateThreadCommentOwnership]),
   removeThreadComment
 );
+
+router.get("/details/:threadId", validate([validateThreadId]), getThread);
+
+router.get(
+  "/list/comments/:threadId",
+  validate([validateThreadId]),
+  getThreadComments
+);
+
+router.get(
+  "/list/reply/:threadId",
+  validate([validateThreadId, validateThreadParentCommentId]),
+  getThreadCommentReplies
+);
+
+router.get(
+  "/stats/interactions/:threadId",
+  isAuthenticated(),
+  validate([validateThreadId]),
+  getThreadInteractions
+);
+
+//WIP
+router.get("/list/trending");
+router.get("/list/trending/suggestions");
 
 export default router;

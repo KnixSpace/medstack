@@ -26,6 +26,10 @@ import {
   toggleThreadInteraction,
   addThreadComment,
   removeThreadComment,
+  getThread,
+  getThreadInteractions,
+  getThreadComments,
+  getThreadCommentReplies,
 } from "./thread.js";
 
 export {
@@ -54,4 +58,8 @@ export {
   toggleThreadInteraction,
   addThreadComment,
   removeThreadComment,
+  getThread,
+  getThreadInteractions,
+  getThreadComments,
+  getThreadCommentReplies,
 };
