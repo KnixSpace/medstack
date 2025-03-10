@@ -13,7 +13,7 @@ export const threadDetailsPipeline = (threadId) => [
     },
   },
   {
-    $set: { space: { $arrayElemAt: ["$space", 0] } },
+    $addFields: { space: { $arrayElemAt: ["$space", 0] } },
   },
   {
     $lookup: {
@@ -24,7 +24,7 @@ export const threadDetailsPipeline = (threadId) => [
     },
   },
   {
-    $set: { owner: { $arrayElemAt: ["$owner", 0] } },
+    $addFields: { owner: { $arrayElemAt: ["$owner", 0] } },
   },
   {
     $lookup: {
@@ -38,7 +38,7 @@ export const threadDetailsPipeline = (threadId) => [
     },
   },
   {
-    $set: {
+    $addFields: {
       interactions: {
         $ifNull: [{ $arrayElemAt: ["$interactions.total", 0] }, 0],
       },

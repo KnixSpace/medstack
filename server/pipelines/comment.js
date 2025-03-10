@@ -23,7 +23,7 @@ export const threadCommentsWithRepliesCountPipeline = (threadId) => [
     },
   },
   {
-    $set: {
+    $addFields: {
       replies: {
         $ifNull: [{ $arrayElemAt: ["$replies.replyCount", 0] }, 0],
       },
@@ -38,7 +38,7 @@ export const threadCommentsWithRepliesCountPipeline = (threadId) => [
     },
   },
   {
-    $set: {
+    $addFields: {
       user: { $arrayElemAt: ["$user", 0] },
     },
   },
@@ -80,7 +80,7 @@ export const threadCommentRepliesPipeline = (threadId, parentId) => [
     },
   },
   {
-    $set: {
+    $addFields: {
       user: { $arrayElemAt: ["$user", 0] },
     },
   },
