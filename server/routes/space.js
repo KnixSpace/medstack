@@ -1,10 +1,14 @@
 import {
   addNewSpace,
-  getSpaceSubscribers,
   modifySpace,
   subscribeSpace,
-  toggleSpaceNewsletter,
   unsubscribeSpace,
+  toggleSpaceNewsletter,
+  getSpace,
+  getSpaceSubscribers,
+  getUserSubscribedSpaces,
+  getNamesOfOwnerSpaces,
+  getOwnerSpacesWithSubscribersCount,
 } from "../controllers/index.js";
 import {
   validateSpaceOwner,
@@ -15,6 +19,7 @@ import {
   validateSpaceId,
   validateSpaceSubscription,
 } from "../validators/space.js";
+import { validateOwnerId } from "../validators/auth.js";
 import { validate } from "../utils/validate.js";
 import { isAuthenticated } from "../middlewares/auth.js";
 
@@ -50,13 +55,6 @@ router.post(
   subscribeSpace
 );
 
-router.get(
-  "/subscribe/users/:spaceId",
-  isAuthenticated(),
-  validate([validateSpaceId]),
-  getSpaceSubscribers
-);
-
 router.post(
   "/unsubscribe/:spaceId",
   isAuthenticated("U"),
@@ -70,5 +68,28 @@ router.post(
   validate([validateSpaceId, validateSpaceSubscription]),
   toggleSpaceNewsletter
 );
+
+router.get("/details/:spaceId", validate([validateSpaceId]), getSpace);
+
+router.get(
+  "/stats/subscribers/:spaceId",
+  isAuthenticated(),
+  validate([validateSpaceId]),
+  getSpaceSubscribers
+);
+
+router.get(
+  "/list/owned-names/:ownerId",
+  validate([validateOwnerId]),
+  getNamesOfOwnerSpaces
+);
+
+router.get(
+  "/list/owned-with-subscribers/:ownerId",
+  validate([validateOwnerId]),
+  getOwnerSpacesWithSubscribersCount
+);
+
+router.get("/list/subscribed", isAuthenticated("U"), getUserSubscribedSpaces);
 
 export default router;

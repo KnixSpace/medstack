@@ -9,26 +9,50 @@ export const userSubscriptionPipeline = (userId) => [
       from: "space",
       localField: "spaceId",
       foreignField: "spaceId",
-      as: "space",
+      as: "spaceDetails",
     },
   },
   {
-    $unwind: {
-      path: "$space",
-      preserveNullAndEmptyArrays: true,
+    $lookup: {
+      from: "subscription",
+      localField: "spaceId",
+      foreignField: "spaceId",
+      pipeline: [
+        {
+          $group: {
+            _id: null,
+            count: { $sum: 1 },
+          },
+        },
+      ],
+      as: "subscribers",
+    },
+  },
+  {
+    $addFields: {
+      title: {
+        $arrayElemAt: ["$spaceDetails.title", 0],
+      },
+      isPrivate: {
+        $arrayElemAt: ["$spaceDetails.isPrivate", 0],
+      },
+      subscribers: {
+        $arrayElemAt: ["$subscribers.count", 0],
+      },
+    },
+  },
+  {
+    $sort: {
+      createdOn: -1,
     },
   },
   {
     $project: {
-      subscriptionId: 1,
-      isNewsletter: 1,
-      space: {
-        spaceId: 1,
-        ownerId: 1,
-        title: 1,
-        description: 1,
-        isPrivate: 1,
-      },
+      _id: 0,
+      userId: 0,
+      createdOn: 0,
+      updatedOn: 0,
+      spaceDetails: 0,
     },
   },
 ];
@@ -56,8 +80,8 @@ export const spaceSubscribersPipeline = (spaceId) => [
   {
     $project: {
       _id: 0,
-      isNewsletter: 1,
-      user: { name: 1, userId: 1 },
+      userId: "$user.userId",
+      name: "$user.name",
     },
   },
 ];

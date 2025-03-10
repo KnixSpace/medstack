@@ -1,9 +1,32 @@
+import { v4 as validateUuid } from "uuid";
 import { userRole } from "../constants/enums.js";
 import { readUser } from "../db/user.js";
 import { verifyJwt } from "../utils/jwt.js";
 import { isValidEmail, isValidPassword, isValidRole } from "./common.js";
 import { buildPropertyError } from "../utils/validate.js";
 import { readInvite } from "../db/invite.js";
+
+export const validateOwnerId = async (ctx, errors) => {
+  const { ownerId } = ctx.params;
+
+  if (!ownerId || !validateUuid(ownerId)) {
+    errors.push(buildPropertyError("ownerId", "ownerId is not valid"));
+    return;
+  }
+
+  const owner = await readUser({ userId: ownerId });
+  if (!owner) {
+    errors.push(buildPropertyError("ownerId", "ownerId is not valid"));
+    return;
+  }
+
+  if (owner.role !== userRole.owner) {
+    errors.push(buildPropertyError("ownerId", "ownerId is not valid"));
+    return;
+  }
+
+  ctx.state.owner = { userId: owner.userId };
+};
 
 export const validateRegisterName = (ctx, errors) => {
   const { name } = ctx.request.body;

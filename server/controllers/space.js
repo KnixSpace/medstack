@@ -2,6 +2,7 @@ import { v4 as uuidV4 } from "uuid";
 import {
   createSpace,
   readAllSpaces,
+  readSpaceDetails,
   readSpacesWithSubscriberCounts,
   updateSpace,
 } from "../db/space.js";
@@ -31,8 +32,51 @@ export const addNewSpace = async (ctx) => {
   ctx.body = { message: "new space created" };
 };
 
+export const modifySpace = async (ctx) => {
+  const { spaceId } = ctx.state.space;
+  await updateSpace(spaceId, ctx.state.shared);
+  ctx.body = { message: "space updated successfully" };
+};
+
+export const subscribeSpace = async (ctx) => {
+  const { userId } = ctx.request.user;
+  const { spaceId } = ctx.state.space;
+
+  const subscription = {
+    subscriptionId: uuidV4(),
+    userId,
+    spaceId,
+    isNewsletter: false,
+    createdOn: new Date(),
+    updatedOn: new Date(),
+  };
+
+  await createSubscription(subscription);
+  ctx.body = { message: "successfully subscribed to space" };
+};
+
+export const unsubscribeSpace = async (ctx) => {
+  const { subscriptionId } = ctx.state.subscription;
+
+  await deleteSubscription(subscriptionId);
+  ctx.body = { message: "Unsubscribed succesfully" };
+};
+
+export const toggleSpaceNewsletter = async (ctx) => {
+  const { subscriptionId, isNewsletter } = ctx.state.subscription;
+
+  await updateSubscription(subscriptionId, { isNewsletter: !isNewsletter });
+  ctx.body = { message: "updated subscription" };
+};
+
+export const getSpace = async (ctx) => {
+  const { spaceId } = ctx.state.space;
+  const space = await readSpaceDetails(spaceId);
+  ctx.body = space[0];
+};
+
 export const getOwnerSpacesWithSubscribersCount = async (ctx) => {
-  const ownerId = ctx.request.user.userId;
+  const ownerId = ctx.state.owner.userId;
   const spaces = await readSpacesWithSubscriberCounts(ownerId);
   if (!spaces.length) {
     ctx.body = { message: "no space found" };
@@ -74,41 +118,4 @@ export const getUserSubscribedSpaces = async (ctx) => {
     return;
   }
   ctx.body = subscriptions;
-};
-
-export const modifySpace = async (ctx) => {
-  const { spaceId } = ctx.state.space;
-  await updateSpace(spaceId, ctx.state.shared);
-  ctx.body = { message: "space updated successfully" };
-};
-
-export const subscribeSpace = async (ctx) => {
-  const { userId } = ctx.request.user;
-  const { spaceId } = ctx.state.space;
-
-  const subscription = {
-    subscriptionId: uuidV4(),
-    userId,
-    spaceId,
-    isNewsletter: false,
-    createdOn: new Date(),
-    updatedOn: new Date(),
-  };
-
-  await createSubscription(subscription);
-  ctx.body = { message: "successfully subscribed to space" };
-};
-
-export const unsubscribeSpace = async (ctx) => {
-  const { subscriptionId } = ctx.state.subscription;
-
-  await deleteSubscription(subscriptionId);
-  ctx.body = { message: "Unsubscribed succesfully" };
-};
-
-export const toggleSpaceNewsletter = async (ctx) => {
-  const { subscriptionId, isNewsletter } = ctx.state.subscription;
-
-  await updateSubscription(subscriptionId, { isNewsletter: !isNewsletter });
-  ctx.body = { message: "updated subscription" };
 };

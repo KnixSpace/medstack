@@ -1,4 +1,7 @@
-import { spacesWithSubscriptionCountPipeline } from "../pipelines/space.js";
+import {
+  spaceDetailsPipeline,
+  spacesWithSubscriptionCountPipeline,
+} from "../pipelines/space.js";
 import { client } from "./database.js";
 
 const spaceCollection = client.db(process.env.DB_NAME).collection("space");
@@ -11,6 +14,9 @@ export const readSpace = async (filter, options) =>
 
 export const readAllSpaces = async (filter, options) =>
   await spaceCollection.find(filter, options).toArray();
+
+export const readSpaceDetails = async (spaceId) =>
+  await spaceCollection.aggregate(spaceDetailsPipeline(spaceId)).toArray();
 
 export const readSpacesWithSubscriberCounts = async (ownerId) =>
   await spaceCollection
