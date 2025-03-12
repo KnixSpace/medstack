@@ -1,7 +1,7 @@
 export const threadDetailsPipeline = (threadId) => [
   {
     $match: {
-      threadId: "1eb2d849-3c59-4dd3-a803-85c2d1445668",
+      threadId,
     },
   },
   {
@@ -66,3 +66,92 @@ export const threadDetailsPipeline = (threadId) => [
     },
   },
 ];
+
+export const featuredThreadsPipeline = (
+  tags = null,
+  threadsListingType = "SUGGESTED"
+) => {
+  const matchStage = tags ? { tags: { $in: tags } } : {};
+  const sortStage =
+    threadsListingType === "TRENDING"
+      ? { interactions: -1 }
+      : { interactions: -1, createdOn: -1 };
+
+  return [
+    {
+      $match: matchStage,
+    },
+    {
+      $lookup: {
+        from: "space",
+        localField: "spaceId",
+        foreignField: "spaceId",
+        pipeline: [{ $project: { _id: 0, title: 1 } }],
+        as: "space",
+      },
+    },
+    {
+      $lookup: {
+        from: "user",
+        localField: "ownerId",
+        foreignField: "userId",
+        pipeline: [{ $project: { _id: 0, name: 1 } }],
+        as: "user",
+      },
+    },
+    {
+      $lookup: {
+        from: "interaction",
+        localField: "threadId",
+        foreignField: "threadId",
+        pipeline: [
+          {
+            $match: {
+              interaction: { $in: ["like"] },
+            },
+          },
+          {
+            $group: {
+              _id: "$threadId",
+              count: { $sum: 1 },
+            },
+          },
+        ],
+        as: "interactions",
+      },
+    },
+    {
+      $addFields: {
+        spaceTitle: {
+          $ifNull: [{ $arrayElemAt: ["$space.title", 0] }, null],
+        },
+        ownerName: {
+          $ifNull: [{ $arrayElemAt: ["$user.name", 0] }, null],
+        },
+        interactions: {
+          $ifNull: [
+            {
+              $arrayElemAt: ["$interactions.count", 0],
+            },
+            0,
+          ],
+        },
+      },
+    },
+    {
+      $project: {
+        spaceId: 0,
+        editorId: 0,
+        ownerId: 0,
+        updatedOn: 0,
+        status: 0,
+        isApproved: 0,
+        space: 0,
+        user: 0,
+      },
+    },
+    {
+      $sort: sortStage,
+    },
+  ];
+};

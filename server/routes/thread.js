@@ -13,6 +13,8 @@ import {
   getThreadInteractions,
   getThreadComments,
   getThreadCommentReplies,
+  getFeaturedThreads,
+  getSubscribedSpacesThreads,
 } from "../controllers/index.js";
 import { validate } from "../utils/validate.js";
 import {
@@ -31,13 +33,15 @@ import {
   validateThreadCommentId,
   validateThreadCommentOwnership,
   validateThreadParentCommentId,
+  validateThreadQueryTags,
+  validateThreadFilterQuery,
 } from "../validators/thread.js";
 
 import Router from "@koa/router";
 const router = new Router({ prefix: "/api/v1/thread" });
 
 router.post(
-  "/create",
+  "/create/:spaceId",
   isAuthenticated("E"),
   validate([
     validateThreadSpace,
@@ -169,8 +173,16 @@ router.get(
   getThreadInteractions
 );
 
-//WIP
-router.get("/list/trending");
-router.get("/list/trending/suggestions");
+router.get(
+  "/list/featured",
+  validate([validateThreadFilterQuery, validateThreadQueryTags]),
+  getFeaturedThreads
+);
+
+router.get(
+  "/list/personalized",
+  isAuthenticated("U"),
+  getSubscribedSpacesThreads
+);
 
 export default router;

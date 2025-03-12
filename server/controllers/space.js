@@ -13,6 +13,7 @@ import {
   readUserSubscriptions,
   updateSubscription,
 } from "../db/subscription.js";
+import { readThreadsOfSpace } from "../db/thread.js";
 
 export const addNewSpace = async (ctx) => {
   const { title, description, isPrivate } = ctx.state.shared;
@@ -73,6 +74,23 @@ export const getSpace = async (ctx) => {
   const { spaceId } = ctx.state.space;
   const space = await readSpaceDetails(spaceId);
   ctx.body = space[0];
+};
+
+export const getSpaceThreads = async (ctx) => {
+  const { spaceId } = ctx.state.space;
+  const { query = {}, tags = [] } = ctx.state.shared || {};
+
+  const filters = {
+    sort: query?.sort,
+    tags,
+  };
+
+  const threads = await readThreadsOfSpace(spaceId, filters);
+  if (!threads.length) {
+    ctx.body = { message: "no threads to show" };
+    return;
+  }
+  ctx.body = threads;
 };
 
 export const getOwnerSpacesWithSubscribersCount = async (ctx) => {

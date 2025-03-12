@@ -1,5 +1,6 @@
 import {
   spaceSubscribersPipeline,
+  subscribedSpacesThreadsPipeline,
   userSubscriptionPipeline,
 } from "../pipelines/subscription.js";
 import { client } from "./database.js";
@@ -22,6 +23,11 @@ export const readUserSubscriptions = async (userId) =>
 export const readSpaceSubscribers = async (spaceId) =>
   await subscriptionCollection
     .aggregate(spaceSubscribersPipeline(spaceId))
+    .toArray();
+
+export const readSubscribedSpacesThreads = async (userId) =>
+  await subscriptionCollection
+    .aggregate(subscribedSpacesThreadsPipeline(userId))
     .toArray();
 
 export const updateSubscription = async (subscriptionId, data) =>

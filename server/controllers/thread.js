@@ -3,6 +3,7 @@ import { threadStatus } from "../constants/enums.js";
 import {
   createThread,
   readAllThreads,
+  readFeaturedThreads,
   readThreadDetails,
   updateThread,
 } from "../db/thread.js";
@@ -20,6 +21,7 @@ import {
   readThreadComments,
   readThreadCommentReplies,
 } from "../db/comment.js";
+import { readSubscribedSpacesThreads } from "../db/subscription.js";
 
 export const addNewThread = async (ctx) => {
   const { spaceId, ownerId } = ctx.state.space;
@@ -149,6 +151,31 @@ export const getThread = async (ctx) => {
   const { threadId } = ctx.state.thread;
   const thread = await readThreadDetails(threadId);
   ctx.body = thread[0];
+};
+
+export const getFeaturedThreads = async (ctx) => {
+  const tags = ctx.state.shared?.tags;
+  const query = ctx.state.shared?.query;
+
+  const threads = await readFeaturedThreads(tags, query?.listing);
+  if (!threads.length) {
+    ctx.body = { message: "no thread to show" };
+    return;
+  }
+
+  ctx.body = threads;
+};
+
+export const getSubscribedSpacesThreads = async (ctx) => {
+  const { userId } = ctx.request.user;
+
+  const threads = await readSubscribedSpacesThreads(userId);
+  if (!threads.length) {
+    ctx.body = { message: "no subscribed spaces threads to show" };
+    return;
+  }
+
+  ctx.body = threads;
 };
 
 export const getThreadInteractions = async (ctx) => {

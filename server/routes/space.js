@@ -9,6 +9,7 @@ import {
   getUserSubscribedSpaces,
   getNamesOfOwnerSpaces,
   getOwnerSpacesWithSubscribersCount,
+  getSpaceThreads,
 } from "../controllers/index.js";
 import {
   validateSpaceOwner,
@@ -20,6 +21,10 @@ import {
   validateSpaceSubscription,
 } from "../validators/space.js";
 import { validateOwnerId } from "../validators/auth.js";
+import {
+  validateThreadFilterQuery,
+  validateThreadQueryTags,
+} from "../validators/thread.js";
 import { validate } from "../utils/validate.js";
 import { isAuthenticated } from "../middlewares/auth.js";
 
@@ -70,6 +75,16 @@ router.post(
 );
 
 router.get("/details/:spaceId", validate([validateSpaceId]), getSpace);
+
+router.get(
+  "/list/threads/:spaceId",
+  validate([
+    validateSpaceId,
+    validateThreadFilterQuery,
+    validateThreadQueryTags,
+  ]),
+  getSpaceThreads
+);
 
 router.get(
   "/stats/subscribers/:spaceId",

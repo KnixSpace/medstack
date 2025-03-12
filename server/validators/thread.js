@@ -27,7 +27,7 @@ export const validateThreadId = async (ctx, errors) => {
 };
 
 export const validateThreadSpace = async (ctx, errors) => {
-  const spaceId = ctx.request.body?.spaceId || ctx.state.thread?.spaceId;
+  const spaceId = ctx.params.spaceId || ctx.state.thread?.spaceId;
 
   if (spaceId === undefined) {
     if (ctx.url.includes("/create")) {
@@ -297,4 +297,34 @@ export const validateThreadModificationData = (ctx, errors) => {
 
   validateThreadTitle(ctx, errors);
   validateThreadContent(ctx, errors);
+};
+
+export const validateThreadFilterQuery = (ctx, errors) => {
+  if (!ctx.querystring) return;
+
+  const query = Object.fromEntries(
+    ctx.querystring.split("&").map((q) => q.split("="))
+  );
+
+  if (!Object.keys(query).every((q) => ["sort", "listing"].includes(q))) {
+    errors.push(buildPropertyError("query", "invalid query"));
+    return;
+  }
+
+  ctx.state.shared = Object.assign({ query }, ctx.state.shared);
+};
+
+export const validateThreadQueryTags = (ctx, errors) => {
+  const { tags } = ctx.request.body;
+  if (!tags) return;
+
+  if (!Array.isArray(tags)) {
+    errors.push(buildPropertyError("tags", "tags must be array"));
+    return;
+  }
+
+  ctx.state.shared = Object.assign(
+    { tags: tags.map((tag) => tag.toLowerCase()) },
+    ctx.state.shared0
+  );
 };

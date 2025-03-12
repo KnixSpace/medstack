@@ -85,3 +85,133 @@ export const spaceSubscribersPipeline = (spaceId) => [
     },
   },
 ];
+
+export const subscribedSpacesThreadsPipeline = (userId) => [
+  {
+    $match: {
+      userId,
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      spaceId: 1,
+    },
+  },
+  {
+    $lookup: {
+      from: "thread",
+      localField: "spaceId",
+      foreignField: "spaceId",
+      pipeline: [
+        {
+          $match: {
+            isApproved: true,
+            status: "P",
+          },
+        },
+        {
+          $lookup: {
+            from: "space",
+            localField: "spaceId",
+            foreignField: "spaceId",
+            pipeline: [
+              {
+                $project: {
+                  _id: 0,
+                  title: 1,
+                },
+              },
+            ],
+            as: "spaceTitle",
+          },
+        },
+        {
+          $lookup: {
+            from: "user",
+            localField: "ownerId",
+            foreignField: "userId",
+            pipeline: [{ $project: { _id: 0, name: 1 } }],
+            as: "ownerName",
+          },
+        },
+        {
+          $lookup: {
+            from: "interaction",
+            localField: "threadId",
+            foreignField: "threadId",
+            pipeline: [
+              {
+                $match: {
+                  interaction: { $in: ["like"] },
+                },
+              },
+              {
+                $group: {
+                  _id: null,
+                  count: { $sum: 1 },
+                },
+              },
+            ],
+            as: "interactions",
+          },
+        },
+        {
+          $addFields: {
+            spaceTitle: {
+              $ifNull: [
+                {
+                  $arrayElemAt: ["$spaceTitle.title", 0],
+                },
+                null,
+              ],
+            },
+            ownerName: {
+              $ifNull: [
+                {
+                  $arrayElemAt: ["$ownerName.name", 0],
+                },
+                null,
+              ],
+            },
+            interactions: {
+              $ifNull: [
+                {
+                  $arrayElemAt: ["$interactions.count", 0],
+                },
+                0,
+              ],
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            spaceId: 0,
+            editorId: 0,
+            ownerId: 0,
+            updatedOn: 0,
+            status: 0,
+            isApproved: 0,
+          },
+        },
+      ],
+      as: "threads",
+    },
+  },
+  {
+    $unwind: {
+      path: "$threads",
+    },
+  },
+  {
+    $replaceRoot: {
+      newRoot: "$threads",
+    },
+  },
+  {
+    $sort: {
+      createdOn: -1,
+    },
+  },
+];
