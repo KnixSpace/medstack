@@ -176,7 +176,6 @@ export const getFeaturedThreads = async (ctx) => {
 export const getSubscribedSpacesThreads = async (ctx) => {
   const { userId } = ctx.request.user;
   const { pageSize = null, skipCount = 0 } = ctx.state.page || {};
-  console.log(ctx.state.page)
 
   const threads = await readSubscribedSpacesThreads(
     userId,
