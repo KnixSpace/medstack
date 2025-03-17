@@ -22,6 +22,7 @@ import {
   readThreadCommentReplies,
 } from "../db/comment.js";
 import { readSubscribedSpacesThreads } from "../db/subscription.js";
+import { cacheData, getCachedData } from "../redis/redis.js";
 
 export const addNewThread = async (ctx) => {
   const { spaceId, ownerId } = ctx.state.space;
@@ -156,14 +157,17 @@ export const getThread = async (ctx) => {
 export const getFeaturedThreads = async (ctx) => {
   const tags = ctx.state.shared?.tags;
   const query = ctx.state.shared?.query;
-  const { pageSize = null, skipCount = 0 } = ctx.state.page || {};
+  const { skipCount = 0 } = ctx.state.page || {};
 
-  const threads = await readFeaturedThreads(
-    tags,
-    query?.listing,
-    pageSize,
-    skipCount
-  );
+  const cachedThreads = await getCachedData(`featured-threads-${skipCount}`);
+  if (cachedThreads) {
+    ctx.body = cachedThreads;
+    return;
+  }
+
+  const threads = await readFeaturedThreads(tags, query?.listing, skipCount);
+
+  await cacheData(`featured-threads-${skipCount}`, 1800, threads);
 
   if (!threads.list.length) {
     ctx.body = { message: "no thread to show" };

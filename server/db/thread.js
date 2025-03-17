@@ -64,15 +64,10 @@ export const readThreadsOfSpace = async (
 export const readFeaturedThreads = async (
   tags,
   threadsListingType,
-  pageSize = null,
   skipCount = 0
 ) => {
-  const pipeline = featuredThreadsPipeline(
-    tags,
-    threadsListingType,
-    pageSize,
-    skipCount
-  );
+  const pipeline = featuredThreadsPipeline(tags, threadsListingType);
+  const pageSize = 2;
 
   const totalDocuments = await countsOfThreads({
     isApproved: true,

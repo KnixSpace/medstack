@@ -2,18 +2,18 @@ import { verifyJwt } from "../utils/jwt.js";
 import { buildPropertyError } from "../utils/validate.js";
 
 export const validatePagination = (ctx, errors) => {
-  if (!ctx.state.query?.pageSize) return;
+  const { pageSize, pageToken } = ctx.state.query || {};
 
-  const pageSize = ctx.state.query.pageSize;
-  if (isNaN(pageSize) || pageSize < 1 || pageSize > 100) {
-    errors.push({
-      field: "pageSize",
-      message: "Page size must be a number between 1 and 100",
-    });
-    return;
+  if (pageSize) {
+    if (isNaN(pageSize) || pageSize < 1 || pageSize > 100) {
+      errors.push({
+        field: "pageSize",
+        message: "Page size must be a number between 1 and 100",
+      });
+      return;
+    }
   }
 
-  const pageToken = ctx.state.query.pageToken;
   if (pageToken) {
     const data = verifyJwt(pageToken, process.env.JWT_PAGE_TOKEN_KEY);
 
