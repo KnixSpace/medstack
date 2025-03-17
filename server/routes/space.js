@@ -22,13 +22,14 @@ import {
 } from "../validators/space.js";
 import { validateOwnerId } from "../validators/auth.js";
 import {
-  validateThreadFilterQuery,
+  validateThreadQueryParameters,
   validateThreadQueryTags,
 } from "../validators/thread.js";
 import { validate } from "../utils/validate.js";
 import { isAuthenticated } from "../middlewares/auth.js";
 
 import Router from "@koa/router";
+import { validatePagination } from "../validators/miscellaneous.js";
 const router = new Router({ prefix: "/api/v1/space" });
 
 router.post(
@@ -80,8 +81,9 @@ router.get(
   "/list/threads/:spaceId",
   validate([
     validateSpaceId,
-    validateThreadFilterQuery,
+    validateThreadQueryParameters,
     validateThreadQueryTags,
+    validatePagination,
   ]),
   getSpaceThreads
 );
@@ -89,7 +91,11 @@ router.get(
 router.get(
   "/stats/subscribers/:spaceId",
   isAuthenticated(),
-  validate([validateSpaceId]),
+  validate([
+    validateSpaceId,
+    validateThreadQueryParameters,
+    validatePagination,
+  ]),
   getSpaceSubscribers
 );
 

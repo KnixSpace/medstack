@@ -27,3 +27,19 @@ export const createJwtInvitationLink = (data) =>
     process.env.JWT_CLIENT_INVITE_KEY,
     "2m"
   )}`;
+
+export const createNextPageToken = (
+  itemId = null,
+  pageSize = 0,
+  skipCount = 0
+) => {
+  if (!skipCount)
+    return generateJwt(
+      { itemId, skipCount: pageSize },
+      process.env.JWT_PAGE_TOKEN_KEY
+    );
+  return generateJwt(
+    { itemId, skipCount: skipCount + pageSize },
+    process.env.JWT_PAGE_TOKEN_KEY
+  );
+};

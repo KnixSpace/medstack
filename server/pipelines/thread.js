@@ -79,7 +79,7 @@ export const featuredThreadsPipeline = (
 
   return [
     {
-      $match: matchStage,
+      $match: { isApproved: true, status: "P", ...matchStage },
     },
     {
       $lookup: {

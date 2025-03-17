@@ -78,15 +78,22 @@ export const getSpace = async (ctx) => {
 
 export const getSpaceThreads = async (ctx) => {
   const { spaceId } = ctx.state.space;
-  const { query = {}, tags = [] } = ctx.state.shared || {};
+  const query = ctx.state.query || {};
+  const { tags = [], pageSize = null, skipCount = 0 } = ctx.state.page || {};
 
   const filters = {
     sort: query?.sort,
     tags,
   };
 
-  const threads = await readThreadsOfSpace(spaceId, filters);
-  if (!threads.length) {
+  const threads = await readThreadsOfSpace(
+    spaceId,
+    filters,
+    pageSize,
+    skipCount
+  );
+
+  if (!threads.list.length) {
     ctx.body = { message: "no threads to show" };
     return;
   }
@@ -119,9 +126,11 @@ export const getNamesOfOwnerSpaces = async (ctx) => {
 };
 
 export const getSpaceSubscribers = async (ctx) => {
-  const spaceId = ctx.state.space.spaceId;
-  const subscribers = await readSpaceSubscribers(spaceId);
-  if (!subscribers) {
+  const { spaceId } = ctx.state.space;
+  const { pageSize = null, skipCount = 0 } = ctx.state.page || {};
+
+  const subscribers = await readSpaceSubscribers(spaceId, pageSize, skipCount);
+  if (!subscribers.list.length) {
     ctx.body = { message: "no subscriber found" };
   }
   ctx.body = subscribers;

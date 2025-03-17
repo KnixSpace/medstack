@@ -156,9 +156,16 @@ export const getThread = async (ctx) => {
 export const getFeaturedThreads = async (ctx) => {
   const tags = ctx.state.shared?.tags;
   const query = ctx.state.shared?.query;
+  const { pageSize = null, skipCount = 0 } = ctx.state.page || {};
 
-  const threads = await readFeaturedThreads(tags, query?.listing);
-  if (!threads.length) {
+  const threads = await readFeaturedThreads(
+    tags,
+    query?.listing,
+    pageSize,
+    skipCount
+  );
+
+  if (!threads.list.length) {
     ctx.body = { message: "no thread to show" };
     return;
   }
@@ -168,9 +175,15 @@ export const getFeaturedThreads = async (ctx) => {
 
 export const getSubscribedSpacesThreads = async (ctx) => {
   const { userId } = ctx.request.user;
+  const { pageSize = null, skipCount = 0 } = ctx.state.page || {};
+  console.log(ctx.state.page)
 
-  const threads = await readSubscribedSpacesThreads(userId);
-  if (!threads.length) {
+  const threads = await readSubscribedSpacesThreads(
+    userId,
+    pageSize,
+    skipCount
+  );
+  if (!threads.list.length) {
     ctx.body = { message: "no subscribed spaces threads to show" };
     return;
   }
@@ -180,19 +193,49 @@ export const getSubscribedSpacesThreads = async (ctx) => {
 
 export const getThreadInteractions = async (ctx) => {
   const { threadId } = ctx.state.thread;
-  const interactions = await readThreadIntractions(threadId);
+  const { pageSize = null, skipCount = 0 } = ctx.state.page || {};
+
+  const interactions = await readThreadIntractions(
+    threadId,
+    pageSize,
+    skipCount
+  );
+
+  if (!interactions.list.length) {
+    ctx.body = { message: "no comments found" };
+  }
+
   ctx.body = interactions;
 };
 
 export const getThreadComments = async (ctx) => {
   const { threadId } = ctx.state.thread;
-  const comments = await readThreadComments(threadId);
+  const { pageSize = null, skipCount = 0 } = ctx.state.page || {};
+
+  const comments = await readThreadComments(threadId, pageSize, skipCount);
+
+  if (!comments.list.length) {
+    ctx.body = { message: "no comments found" };
+  }
+
   ctx.body = comments;
 };
 
 export const getThreadCommentReplies = async (ctx) => {
   const { threadId } = ctx.state.thread;
   const { parentId } = ctx.state.shared;
-  const replies = await readThreadCommentReplies(threadId, parentId);
+  const { pageSize = null, skipCount = 0 } = ctx.state.page || {};
+
+  const replies = await readThreadCommentReplies(
+    threadId,
+    parentId,
+    pageSize,
+    skipCount
+  );
+
+  if (!replies.list.length) {
+    ctx.body = { message: "no replies" };
+  }
+
   ctx.body = replies;
 };

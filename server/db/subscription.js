@@ -3,6 +3,7 @@ import {
   subscribedSpacesThreadsPipeline,
   userSubscriptionPipeline,
 } from "../pipelines/subscription.js";
+import { createNextPageToken } from "../utils/jwt.js";
 import { client } from "./database.js";
 
 const subscriptionCollection = client
@@ -12,6 +13,9 @@ const subscriptionCollection = client
 export const createSubscription = async (subscription) =>
   await subscriptionCollection.insertOne(subscription);
 
+export const countsOfSubscriptions = async (filter) =>
+  await subscriptionCollection.countDocuments(filter);
+
 export const readSubscription = async (filter, options) =>
   await subscriptionCollection.findOne(filter, options);
 
@@ -20,15 +24,56 @@ export const readUserSubscriptions = async (userId) =>
     .aggregate(userSubscriptionPipeline(userId))
     .toArray();
 
-export const readSpaceSubscribers = async (spaceId) =>
-  await subscriptionCollection
-    .aggregate(spaceSubscribersPipeline(spaceId))
-    .toArray();
+export const readSpaceSubscribers = async (
+  spaceId,
+  pageSize = null,
+  skipCount = 0
+) => {
+  const pipeline = spaceSubscribersPipeline(spaceId);
 
-export const readSubscribedSpacesThreads = async (userId) =>
-  await subscriptionCollection
-    .aggregate(subscribedSpacesThreadsPipeline(userId))
-    .toArray();
+  const totalDocuments = await countsOfSubscriptions({ spaceId });
+  if (totalDocuments && pageSize) {
+    pipeline.push({ $skip: skipCount });
+    pipeline.push({ $limit: pageSize });
+  }
+
+  const list = await subscriptionCollection.aggregate(pipeline).toArray();
+
+  if (
+    !pageSize ||
+    !list.length ||
+    list.length < pageSize ||
+    pageSize + skipCount >= totalDocuments
+  )
+    return { list };
+
+  return {
+    nextPagetoken: createNextPageToken(spaceId, pageSize, skipCount),
+    list,
+  };
+};
+
+export const readSubscribedSpacesThreads = async (
+  userId,
+  pageSize = null,
+  skipCount = 0
+) => {
+  const pipeline = subscribedSpacesThreadsPipeline(userId);
+
+  if (pageSize) {
+    pipeline.push({ $skip: skipCount });
+    pipeline.push({ $limit: pageSize });
+  }
+
+  const list = await subscriptionCollection.aggregate(pipeline).toArray();
+
+  if (!pageSize || !list.length || list.length < pageSize) return { list };
+
+  return {
+    nextPagetoken: createNextPageToken(null, pageSize, skipCount),
+    list,
+  };
+};
 
 export const updateSubscription = async (subscriptionId, data) =>
   await subscriptionCollection.updateOne(

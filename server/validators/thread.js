@@ -9,6 +9,7 @@ import {
   userRole,
 } from "../constants/enums.js";
 import { readComment } from "../db/comment.js";
+import { isValidQueries } from "./common.js";
 
 export const validateThreadId = async (ctx, errors) => {
   const threadId = ctx.params.threadId;
@@ -299,19 +300,22 @@ export const validateThreadModificationData = (ctx, errors) => {
   validateThreadContent(ctx, errors);
 };
 
-export const validateThreadFilterQuery = (ctx, errors) => {
+export const validateThreadQueryParameters = (ctx, errors) => {
   if (!ctx.querystring) return;
 
-  const query = Object.fromEntries(
-    ctx.querystring.split("&").map((q) => q.split("="))
-  );
+  const query = isValidQueries(ctx.querystring, [
+    "parentId",
+    "sort",
+    "listing",
+    "pageSize",
+    "pageToken",
+  ]);
 
-  if (!Object.keys(query).every((q) => ["sort", "listing"].includes(q))) {
+  if (!query) {
     errors.push(buildPropertyError("query", "invalid query"));
     return;
   }
-
-  ctx.state.shared = Object.assign({ query }, ctx.state.shared);
+  ctx.state.query = Object.assign(query, ctx.state.query);
 };
 
 export const validateThreadQueryTags = (ctx, errors) => {
@@ -325,6 +329,6 @@ export const validateThreadQueryTags = (ctx, errors) => {
 
   ctx.state.shared = Object.assign(
     { tags: tags.map((tag) => tag.toLowerCase()) },
-    ctx.state.shared0
+    ctx.state.shared
   );
 };

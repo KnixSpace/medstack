@@ -34,10 +34,11 @@ import {
   validateThreadCommentOwnership,
   validateThreadParentCommentId,
   validateThreadQueryTags,
-  validateThreadFilterQuery,
+  validateThreadQueryParameters,
 } from "../validators/thread.js";
 
 import Router from "@koa/router";
+import { validatePagination } from "../validators/miscellaneous.js";
 const router = new Router({ prefix: "/api/v1/thread" });
 
 router.post(
@@ -156,32 +157,50 @@ router.get("/details/:threadId", validate([validateThreadId]), getThread);
 
 router.get(
   "/list/comments/:threadId",
-  validate([validateThreadId]),
+  validate([
+    validateThreadId,
+    validateThreadQueryParameters,
+    validatePagination,
+  ]),
   getThreadComments
 );
 
 router.get(
   "/list/reply/:threadId",
-  validate([validateThreadId, validateThreadParentCommentId]),
+  validate([
+    validateThreadId,
+    validateThreadParentCommentId,
+    validateThreadQueryParameters,
+    validatePagination,
+  ]),
   getThreadCommentReplies
 );
 
 router.get(
   "/stats/interactions/:threadId",
   isAuthenticated(),
-  validate([validateThreadId]),
+  validate([
+    validateThreadId,
+    validateThreadQueryParameters,
+    validatePagination,
+  ]),
   getThreadInteractions
 );
 
 router.get(
   "/list/featured",
-  validate([validateThreadFilterQuery, validateThreadQueryTags]),
+  validate([
+    validateThreadQueryParameters,
+    validateThreadQueryTags,
+    validatePagination,
+  ]),
   getFeaturedThreads
 );
 
 router.get(
   "/list/personalized",
   isAuthenticated("U"),
+  validate([validateThreadQueryParameters, validatePagination]),
   getSubscribedSpacesThreads
 );
 

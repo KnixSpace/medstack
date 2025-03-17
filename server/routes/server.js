@@ -1,7 +1,8 @@
 import Router from "@koa/router";
 const router = new Router();
 
-router.get("/", (ctx) => {
+router.get("/yoo", (ctx) => {
+  console.log(ctx.path);
   ctx.body = "🧠 Server is running fantastic";
 });
 

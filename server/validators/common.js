@@ -10,3 +10,14 @@ export const isValidPassword = (password) =>
 
 export const isValidRole = (mapper, role) =>
   Object.values(mapper).includes(role);
+
+export const isValidQueries = (querystring, validQueries = []) => {
+  const query = Object.fromEntries(
+    querystring.split("&").map((q) => q.split("="))
+  );
+
+  if (!Object.keys(query).every((q) => validQueries.includes(q))) {
+    return null;
+  }
+  return query;
+};
