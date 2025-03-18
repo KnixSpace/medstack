@@ -22,7 +22,7 @@ import {
   readThreadCommentReplies,
 } from "../db/comment.js";
 import { readSubscribedSpacesThreads } from "../db/subscription.js";
-import { cacheData, getCachedData } from "../redis/redis.js";
+import { cacheData, getCachedData } from "../config/redis.js";
 
 export const addNewThread = async (ctx) => {
   const { spaceId, ownerId } = ctx.state.space;
