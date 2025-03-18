@@ -3,6 +3,7 @@ import authRoutes from "./auth.js";
 import spaceRoutes from "./space.js";
 import inviteRoutes from "./invite.js";
 import threadRoutes from "./thread.js";
+import geminiRoutes from "./gemini.js";
 
 export const routes = (app) => {
   const allRoutes = [
@@ -11,6 +12,7 @@ export const routes = (app) => {
     spaceRoutes,
     inviteRoutes,
     threadRoutes,
+    geminiRoutes,
   ];
 
   allRoutes.forEach((route) => {

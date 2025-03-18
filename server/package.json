@@ -12,6 +12,7 @@
   "author": "Krupal Patel",
   "license": "ISC",
   "dependencies": {
+    "@google/generative-ai": "^0.24.0",
     "@koa/router": "^13.1.0",
     "bcrypt": "^5.1.1",
     "bluebird": "^3.7.2",

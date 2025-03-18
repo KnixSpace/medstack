@@ -35,6 +35,12 @@ import {
   getThreadComments,
   getThreadCommentReplies,
 } from "./thread.js";
+import {
+  generateTitle,
+  generateSpaceDescription,
+  generateThreadContent,
+  rehrase,
+} from "./gemini.js";
 
 export {
   login,
@@ -70,4 +76,8 @@ export {
   getThreadInteractions,
   getThreadComments,
   getThreadCommentReplies,
+  generateTitle,
+  generateSpaceDescription,
+  generateThreadContent,
+  rehrase,
 };

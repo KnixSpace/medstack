@@ -12,3 +12,27 @@ export const threadStatus = Object.freeze({
 });
 
 export const interactionTypes = ["like", "unlike"];
+
+export const contentTone = [
+  "informative",
+  "conversational",
+  "formal",
+  "inspirational",
+  "humorous",
+  "persuasive",
+  "analytical",
+  "narrative",
+  "educational",
+  "technical",
+  "educational",
+  "journalistic",
+  "review",
+  "tutorials",
+  "marketing",
+  "news",
+  "empathetic",
+  "optimistic",
+  "reflective",
+  "sarcastic",
+  "urgent",
+];
