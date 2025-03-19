@@ -8,3 +8,6 @@ export const sendThreadApprovedNotification = async (to, data) =>
 
 export const sendbackThreadForUpadte = async (to, data) =>
   await sendEmail(to, "Thread Needs Update", "threadSendbackForUpdate", data);
+
+export const sendNewsletter = async (to, data) =>
+  await sendEmail(to, `Newsletter: ${data.title}`, "newsletter", data);

@@ -1,4 +1,5 @@
 import { v4 as uuidV4 } from "uuid";
+import Bluebird from "bluebird";
 import { threadStatus } from "../constants/enums.js";
 import {
   createThread,
@@ -9,6 +10,7 @@ import {
 } from "../db/thread.js";
 import {
   sendbackThreadForUpadte,
+  sendNewsletter,
   sendThreadApprovedNotification,
   sendThreadPublishApproval,
 } from "../emails/threads.js";
@@ -21,7 +23,10 @@ import {
   readThreadComments,
   readThreadCommentReplies,
 } from "../db/comment.js";
-import { readSubscribedSpacesThreads } from "../db/subscription.js";
+import {
+  readNewsletterEnabledSubscriptions,
+  readSubscribedSpacesThreads,
+} from "../db/subscription.js";
 import { cacheData, getCachedData } from "../config/redis.js";
 
 export const addNewThread = async (ctx) => {
@@ -70,7 +75,7 @@ export const getAllPendingReviewThread = async (ctx) => {
 };
 
 export const approveToPublishThread = async (ctx) => {
-  const { threadId, editorId, title } = ctx.state.thread;
+  const { threadId, spaceId, editorId, title } = ctx.state.thread;
   await updateThread(threadId, {
     isApproved: true,
     status: threadStatus.published,
@@ -81,6 +86,25 @@ export const approveToPublishThread = async (ctx) => {
     postTitle: title,
     postLink: `${frontend}/thread/${threadId}`,
   });
+
+  const newsletterSubscribers = await readNewsletterEnabledSubscriptions(
+    spaceId
+  );
+
+  if (newsletterSubscribers[0]?.users.length) {
+    const subscribers = newsletterSubscribers[0].users;
+    await Bluebird.map(
+      subscribers,
+      async (subscriber) => {
+        await sendNewsletter(subscriber.email, {
+          title,
+          userName: subscriber.name,
+          link: `${frontend}/thread/${threadId}`,
+        });
+      },
+      { concurrency: 5 }
+    );
+  }
   ctx.body = { message: "thread approved successfully" };
 };
 

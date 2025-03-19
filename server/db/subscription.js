@@ -1,4 +1,5 @@
 import {
+  newsletterEnabledSubscriptionsPipeline,
   spaceSubscribersPipeline,
   subscribedSpacesThreadsPipeline,
   userSubscriptionPipeline,
@@ -74,6 +75,11 @@ export const readSubscribedSpacesThreads = async (
     list,
   };
 };
+
+export const readNewsletterEnabledSubscriptions = async (spaceId) =>
+  await subscriptionCollection
+    .aggregate(newsletterEnabledSubscriptionsPipeline(spaceId))
+    .toArray();
 
 export const updateSubscription = async (subscriptionId, data) =>
   await subscriptionCollection.updateOne(

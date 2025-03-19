@@ -215,3 +215,48 @@ export const subscribedSpacesThreadsPipeline = (userId) => [
     },
   },
 ];
+
+export const newsletterEnabledSubscriptionsPipeline = (spaceId) => [
+  {
+    $match: {
+      spaceId,
+      isNewsletter: true,
+    },
+  },
+  {
+    $project: {
+      userId: 1,
+    },
+  },
+  {
+    $lookup: {
+      from: "user",
+      localField: "userId",
+      foreignField: "userId",
+      pipeline: [
+        {
+          $project: { _id: 0, email: 1, name: 1 },
+        },
+      ],
+      as: "user",
+    },
+  },
+  {
+    $addFields: {
+      user: {
+        $ifNull: [{ $arrayElemAt: ["$user", 0] }, null],
+      },
+    },
+  },
+  {
+    $group: {
+      _id: null,
+      users: { $addToSet: "$user" },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+    },
+  },
+];
