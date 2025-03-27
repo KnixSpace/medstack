@@ -1,5 +1,5 @@
 import jsonwebtoken from "jsonwebtoken";
-import { backend } from "../constants/config.js";
+import { backend, frontend } from "../constants/config.js";
 const { sign, verify, decode } = jsonwebtoken;
 
 export const generateJwt = (data, privateKey, expiresIn = null) => {
@@ -16,7 +16,7 @@ export const verifyJwt = (token, privateKey) =>
 export const decodeJwt = (token) => decode(token);
 
 export const createJwtEmailVerificationLink = (data) =>
-  `${backend}/api/v1/auth/verify-email/${generateJwt(
+  `${frontend}/auth/verify/${generateJwt(
     data,
     process.env.JWT_VERIFY_USER_KEY
   )}`;

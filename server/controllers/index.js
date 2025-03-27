@@ -1,4 +1,11 @@
-import { login, register, verifyEmail } from "./auth.js";
+import {
+  login,
+  register,
+  isUserLoggedIn,
+  getUser,
+  verifyEmail,
+  resendVerificationEmail,
+} from "./auth.js";
 import {
   addNewInvite,
   resendInvite,
@@ -45,7 +52,10 @@ import {
 export {
   login,
   register,
+  isUserLoggedIn,
+  getUser,
   verifyEmail,
+  resendVerificationEmail,
   getAllInvites,
   addNewInvite,
   resendInvite,

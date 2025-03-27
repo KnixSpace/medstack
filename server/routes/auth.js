@@ -1,4 +1,11 @@
-import { login, register, verifyEmail } from "../controllers/index.js";
+import {
+  getUser,
+  isUserLoggedIn,
+  login,
+  register,
+  resendVerificationEmail,
+  verifyEmail,
+} from "../controllers/index.js";
 import { validate } from "../utils/validate.js";
 import {
   validateEmailVerified,
@@ -8,6 +15,7 @@ import {
   validateRegisterName,
   validateRegisterPassword,
   validateRegisterRole,
+  validateResendVerificationEmail,
 } from "../validators/auth.js";
 import { isValidCredentials } from "../middlewares/auth.js";
 
@@ -32,10 +40,20 @@ router.post(
   login
 );
 
+router.get("/user", getUser); //for hoc in nextjs
+
+router.get("/verify", isUserLoggedIn);
+
 router.get(
   "/verify-email/:token",
   validate([validateEmailVerified]),
   verifyEmail
+);
+
+router.post(
+  "/resend-verification-email",
+  validate([validateResendVerificationEmail]),
+  resendVerificationEmail
 );
 
 export default router;

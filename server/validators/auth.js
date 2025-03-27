@@ -160,3 +160,32 @@ export const validateEmailVerified = async (ctx, errors) => {
 
   ctx.state.shared = Object.assign({ userId: data.userId }, ctx.state.shared);
 };
+
+export const validateResendVerificationEmail = async (ctx, errors) => {
+  const { email } = ctx.request.body;
+
+  if (email === undefined) {
+    errors.push(buildPropertyError("email", "email is required"));
+  } else if (
+    typeof email !== "string" ||
+    email.trim().length > 50 ||
+    !isValidEmail(email)
+  ) {
+    errors.push(buildPropertyError("email", "email is not valid"));
+  } else {
+    const user = await readUser(
+      { email: email.trim() },
+      { projection: { userId: 1, name: 1 } }
+    );
+
+    if (!user) {
+      errors.push(buildPropertyError("email", "email not found"));
+      return;
+    }
+
+    ctx.state.shared = Object.assign(
+      { userId: user.userId, email: email.trim(), name: user.name },
+      ctx.state.shared
+    );
+  }
+};

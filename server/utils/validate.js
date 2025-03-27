@@ -13,7 +13,7 @@ export const validate = (validators) => async (ctx, next) => {
 
   if (errors.length) {
     ctx.status = 400;
-    ctx.body = errors;
+    ctx.body = { errors };
     return;
   }
   return next();

@@ -56,7 +56,14 @@ export const acceptInvite = async (ctx) => {
     { userId: user.userId, role },
     process.env.JWT_PASSWORD_KEY
   );
-  ctx.set("Authorization", `Bearer ${token}`);
+
+  ctx.cookies.set("connect.sid", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+  });
+
   ctx.status = 201;
   ctx.body = { message: "login successfully" };
 };
