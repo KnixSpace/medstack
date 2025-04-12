@@ -19,6 +19,7 @@ import {
   validateSpaceTitle,
   validateSpaceId,
   validateSpaceSubscription,
+  validateSpaceCoverImage,
 } from "../validators/space.js";
 import { validateOwnerId } from "../validators/auth.js";
 import {
@@ -38,12 +39,13 @@ router.post(
   validate([
     validateSpaceTitle,
     validateSpaceDescription,
+    validateSpaceCoverImage,
     validateSpacePrivacy,
   ]),
   addNewSpace
 );
 
-router.post(
+router.put(
   "/update/:spaceId",
   isAuthenticated("O"),
   validate([
@@ -75,7 +77,7 @@ router.post(
   toggleSpaceNewsletter
 );
 
-router.get("/details/:spaceId", validate([validateSpaceId]), getSpace);
+router.get("/:spaceId", validate([validateSpaceId]), getSpace);
 
 router.get(
   "/list/threads/:spaceId",

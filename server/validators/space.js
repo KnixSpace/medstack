@@ -2,6 +2,7 @@ import { validate as validateUuid } from "uuid";
 import { buildPropertyError } from "../utils/validate.js";
 import { readSpace } from "../db/space.js";
 import { readSubscription } from "../db/subscription.js";
+import { isValidImageUrl } from "./common.js";
 
 export const validateSpaceId = async (ctx, errors) => {
   const spaceId = ctx.params.spaceId || ctx.request.body.spaceId;
@@ -125,12 +126,35 @@ export const validateSpacePrivacy = (ctx, errors) => {
   }
 };
 
+export const validateSpaceCoverImage = (ctx, errors) => {
+  const { coverImage } = ctx.request.body;
+
+  if (!coverImage) return;
+
+  if (typeof coverImage !== "string") {
+    errors.push(buildPropertyError("coverImage", "must be string"));
+    return;
+  }
+
+  const sanitizedCoverImage = coverImage.trim();
+  if (!isValidImageUrl(sanitizedCoverImage)) {
+    errors.push(buildPropertyError("coverImage", "invalid image url"));
+    return;
+  }
+
+  ctx.state.shared = Object.assign(
+    { coverImage: sanitizedCoverImage },
+    ctx.state.shared
+  );
+};
+
 export const validateSpaceModificationData = (ctx, errors) => {
   if (Object.keys(ctx.request.body).length === 0) {
     errors.push(buildPropertyError("data", "no data changed"));
     return;
   }
 
+  validateSpaceCoverImage(ctx, errors);
   validateSpaceTitle(ctx, errors);
   validateSpaceDescription(ctx, errors);
   validateSpacePrivacy(ctx, errors);

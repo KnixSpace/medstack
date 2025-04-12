@@ -16,7 +16,7 @@ import {
 import { readThreadsOfSpace } from "../db/thread.js";
 
 export const addNewSpace = async (ctx) => {
-  const { title, description, isPrivate } = ctx.state.shared;
+  const { title, description, isPrivate, coverImage } = ctx.state.shared;
   const { userId } = ctx.request.user;
 
   const space = {
@@ -24,13 +24,14 @@ export const addNewSpace = async (ctx) => {
     ownerId: userId,
     title,
     description,
-    isPrivate: isPrivate !== undefined ? isPrivate : true,
+    coverImage,
+    isPrivate: isPrivate !== undefined ? isPrivate : false,
     createdOn: new Date(),
     updatedOn: new Date(),
   };
   await createSpace(space);
 
-  ctx.body = { message: "new space created" };
+  ctx.body = { message: "new space created", data: { spaceId: space.spaceId } };
 };
 
 export const modifySpace = async (ctx) => {
@@ -73,7 +74,10 @@ export const toggleSpaceNewsletter = async (ctx) => {
 export const getSpace = async (ctx) => {
   const { spaceId } = ctx.state.space;
   const space = await readSpaceDetails(spaceId);
-  ctx.body = space[0];
+  ctx.body = {
+    message: "space details found",
+    data: space[0],
+  };
 };
 
 export const getSpaceThreads = async (ctx) => {
@@ -101,13 +105,13 @@ export const getSpaceThreads = async (ctx) => {
 };
 
 export const getOwnerSpacesWithSubscribersCount = async (ctx) => {
-  const ownerId = ctx.state.owner.userId;
+  const { userId: ownerId } = ctx.state.owner;
   const spaces = await readSpacesWithSubscriberCounts(ownerId);
   if (!spaces.length) {
     ctx.body = { message: "no space found" };
     return;
   }
-  ctx.body = spaces;
+  ctx.body = { message: "spaces found", data: spaces };
 };
 
 export const getNamesOfOwnerSpaces = async (ctx) => {

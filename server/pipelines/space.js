@@ -9,13 +9,17 @@ export const spaceDetailsPipeline = (spaceId) => [
       from: "user",
       localField: "ownerId",
       foreignField: "userId",
+      pipeline: [{ $project: { name: 1, avatar: 1 } }],
       as: "ownerDetails",
     },
   },
   {
     $addFields: {
-      ownerDetails: {
-        $arrayElemAt: ["$ownerDetails", 0],
+      ownerName: {
+        $arrayElemAt: ["$ownerDetails.name", 0],
+      },
+      ownerAvatar: {
+        $arrayElemAt: ["$ownerDetails.avatar", 0],
       },
     },
   },
@@ -50,17 +54,7 @@ export const spaceDetailsPipeline = (spaceId) => [
   {
     $project: {
       _id: 0,
-      ownerId: 0,
-      ownerDetails: {
-        _id: 0,
-        email: 0,
-        password: 0,
-        role: 0,
-        createdOn: 0,
-        updatedOn: 0,
-        isVerified: 0,
-        subscribedTags: 0,
-      },
+      ownerDetails: 0,
     },
   },
 ];
@@ -101,7 +95,6 @@ export const spacesWithSubscriptionCountPipeline = (ownerId) => [
     $project: {
       _id: 0,
       ownerId: 0,
-      createdOn: 0,
       updatedOn: 0,
     },
   },
