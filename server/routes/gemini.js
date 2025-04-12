@@ -3,7 +3,7 @@ import {
   generateSpaceDescription,
   generateThreadContent,
   generateTitle,
-  rehrase,
+  rephrase,
 } from "../controllers/index.js";
 import { validate } from "../utils/validate.js";
 import {
@@ -41,7 +41,7 @@ router.post(
   "/rephrase",
   isAuthenticated("E"),
   validate([validateRephraseContent]),
-  rehrase
+  rephrase
 );
 
 export default router;

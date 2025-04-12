@@ -22,10 +22,10 @@ export const createJwtEmailVerificationLink = (data) =>
   )}`;
 
 export const createJwtInvitationLink = (data) =>
-  `${backend}/api/v1/invite/accept/${generateJwt(
+  `${frontend}/auth/team-invite/${generateJwt(
     data,
     process.env.JWT_CLIENT_INVITE_KEY,
-    "2m"
+    "10m"
   )}`;
 
 export const createNextPageToken = (

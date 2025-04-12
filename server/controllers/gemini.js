@@ -43,7 +43,7 @@ export const generateThreadContent = async (ctx) => {
   ctx.res.end();
 };
 
-export const rehrase = async (ctx) => {
+export const rephrase = async (ctx) => {
   const { rephraseContent } = ctx.state.shared;
 
   const data = await gemini(0.7, 500).generateContent(
