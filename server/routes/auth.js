@@ -2,6 +2,7 @@ import {
   getUser,
   isUserLoggedIn,
   login,
+  logout,
   register,
   resendVerificationEmail,
   verifyEmail,
@@ -40,9 +41,7 @@ router.post(
   login
 );
 
-router.get("/user", getUser); //for hoc in nextjs
-
-router.get("/verify", isUserLoggedIn);
+router.post("/logout", logout);
 
 router.get(
   "/verify-email/:token",
@@ -55,5 +54,9 @@ router.post(
   validate([validateResendVerificationEmail]),
   resendVerificationEmail
 );
+
+router.get("/user", getUser);
+
+router.get("/verify", isUserLoggedIn);
 
 export default router;

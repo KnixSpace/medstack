@@ -6,11 +6,11 @@ import {
   createJwtEmailVerificationLink,
   decodeJwt,
 } from "../utils/jwt.js";
-import { createUser, isUser, readUser, updateUser } from "../db/user.js";
+import { createUser, readUser, updateUser } from "../db/user.js";
 import { sendEmailVerification } from "../emails/auth.js";
 
 export const register = async (ctx) => {
-  const { name, email, password, role, subscribedTags } = ctx.state.shared;
+  const { name, email, password, role } = ctx.state.shared;
 
   const user = {
     userId: uuidV4(),
@@ -18,7 +18,6 @@ export const register = async (ctx) => {
     email,
     password: await hashPassword(password),
     role,
-    subscribedTags: subscribedTags ? subscribedTags : [],
     isVerified: false,
     createdOn: new Date(),
     updatedOn: new Date(),
@@ -51,15 +50,33 @@ export const login = async (ctx) => {
   ctx.body = { message: "login successfully" };
 };
 
+export const logout = async (ctx) => {
+  ctx.cookies.set("connect.sid", null, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: 0,
+  });
+  ctx.status = 200;
+  ctx.body = { message: "logout successfully" };
+};
+
 export const isUserLoggedIn = async (ctx) => {
   const token = ctx.cookies.get("connect.sid");
   const userData = decodeJwt(token, process.env.JWT_PASSWORD_KEY);
 
-  if (userData?.userId && (await isUser({ userId: userData.userId }))) {
-    ctx.body = { message: "user logged in", data: { isLoggedIn: true } };
+  const user = await readUser({ userId: userData.userId });
+  if (userData?.userId && user) {
+    ctx.body = {
+      message: "user logged in",
+      data: { isLoggedIn: true, role: user.role },
+    };
     return;
   }
-  ctx.body = { message: "user not logged in", data: { isLoggedIn: false } };
+  ctx.body = {
+    message: "user not logged in",
+    data: { isLoggedIn: false },
+  };
 };
 
 export const getUser = async (ctx) => {

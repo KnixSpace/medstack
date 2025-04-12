@@ -34,7 +34,7 @@ export const isAuthenticated =
       ctx.body = { message: "unauthorized" };
       return;
     }
-    
+
     const data = verifyJwt(token, process.env.JWT_PASSWORD_KEY);
     if (!data) {
       ctx.status = 401;
@@ -59,7 +59,17 @@ export const isAuthenticated =
     }
 
     if (data.role === userRole.editor) {
-      const owner = await readUser({ userId: user.ownerDetails?.ownerId });
+      const owner = await readUser(
+        { userId: user.ownerId },
+        {
+          projection: {
+            _id: 0,
+            password: 0,
+            isVerified: 0,
+            onboardComplete: 0,
+          },
+        }
+      );
       if (!owner) {
         ctx.status = 401;
         ctx.body = { message: "unauthorized" };
