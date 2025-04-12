@@ -8,7 +8,7 @@ import { decodeJwt, verifyJwt } from "../utils/jwt.js";
 export const validateInviteToken = async (ctx, errors) => {
   const { inviteToken } = ctx.params;
 
-  if (ctx.url.includes("accept")) {
+  if (ctx.url.includes("accept") || ctx.url.includes("verify")) {
     const data = verifyJwt(inviteToken, process.env.JWT_CLIENT_INVITE_KEY);
     if (!data) {
       errors.push(buildPropertyError("token", "invalid invite token"));
@@ -22,9 +22,12 @@ export const validateInviteToken = async (ctx, errors) => {
 };
 
 export const validateInviteId = async (ctx, errors) => {
-  if (ctx.state.shared?.inviteId === undefined) return;
+  if (ctx.url.includes("accept") || ctx.url.includes("verify")) {
+    if (!ctx.state.shared?.inviteId) return;
+  }
 
-  const { inviteId } = ctx.state.shared;
+  const inviteId = ctx.params?.inviteId || ctx.state.shared?.inviteId;
+
   if (!validateUuid(inviteId)) {
     errors.push(buildPropertyError("params", "invalid invite id"));
     return;
@@ -46,24 +49,50 @@ export const validateInviteAccepted = async (ctx, errors) => {
   }
 };
 
-export const validateInviteUserEmail = async (ctx, errors) => {
-  const { userEmail } = ctx.request.body;
+export const validateInviteUsersEmails = async (ctx, errors) => {
+  const { emails } = ctx.request.body;
 
-  if (userEmail === undefined) {
-    errors.push(buildPropertyError("userEmail", "user email is required"));
-  } else if (!isValidEmail(userEmail)) {
-    errors.push(buildPropertyError("userEmail", "user email is not valid"));
-  } else if (
-    (await readInvite({ userEmail })) ||
-    (await readUser({ email: userEmail }))
-  ) {
-    errors.push(buildPropertyError("userEmail", "user already exists"));
-  } else {
-    ctx.state.shared = Object.assign(
-      { userEmail: userEmail.trim() },
-      ctx.state.shared
-    );
+  if (!Array.isArray(emails)) {
+    errors.push(buildPropertyError("emails", "emails must be an array"));
+    return;
   }
+  if (emails.length < 1) {
+    errors.push(buildPropertyError("emails", "emails must not be empty"));
+    return;
+  }
+  if (emails.length > 5) {
+    errors.push(buildPropertyError("emails", "emails must not exceed 5"));
+    return;
+  }
+  if (emails.some((email) => typeof email !== "string")) {
+    errors.push(buildPropertyError("emails", "emails must be strings"));
+    return;
+  }
+  if (emails.some((email) => email.trim().length < 1)) {
+    errors.push(buildPropertyError("emails", "emails must not be empty"));
+    return;
+  }
+  if (emails.some((email) => email.trim().length > 100)) {
+    errors.push(buildPropertyError("emails", "emails must not exceed 100"));
+    return;
+  }
+  if (emails.some((email) => !isValidEmail(email))) {
+    errors.push(buildPropertyError("emails", "emails are not valid"));
+    return;
+  }
+
+  if (
+    (await readUser({ email: { $in: emails } })) ||
+    (await readInvite({ userEmail: { $in: emails } }))
+  ) {
+    errors.push(buildPropertyError("emails", "emails already exists"));
+    return;
+  }
+
+  ctx.state.shared = Object.assign(
+    { emails: emails.map((email) => email.trim()) },
+    ctx.state.shared
+  );
 };
 
 export const validateInviteUserName = async (ctx, errors) => {
