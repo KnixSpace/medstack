@@ -21,3 +21,8 @@ export const isValidQueries = (querystring, validQueries = []) => {
   }
   return query;
 };
+
+export const isValidImageUrl = (url) =>
+  /^https:\/\/res\.cloudinary\.com\/([a-zA-Z0-9_-]+)\/image\/upload(\/[a-zA-Z0-9_-]+)*\/([a-zA-Z0-9_-]+)\.(jpg|jpeg|png|gif|bmp|webp|svg|tiff|ico)$/i.test(
+    url.trim()
+  );

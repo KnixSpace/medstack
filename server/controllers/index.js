@@ -1,16 +1,21 @@
 import {
   login,
   register,
+  logout,
   isUserLoggedIn,
   getUser,
   verifyEmail,
   resendVerificationEmail,
 } from "./auth.js";
 import {
-  addNewInvite,
-  resendInvite,
+  addNewInvites,
   acceptInvite,
-  getAllInvites,
+  resendInvite,
+  verifyInvite,
+  removeInvite,
+  removeEditor,
+  getPendingInvites,
+  getInvitedEditors,
 } from "./invite.js";
 import {
   addNewSpace,
@@ -46,20 +51,37 @@ import {
   generateTitle,
   generateSpaceDescription,
   generateThreadContent,
-  rehrase,
+  rephrase,
 } from "./gemini.js";
+import {
+  completeOnboarding,
+  getMyProfile,
+  getPublicProfile,
+  getEditorOwnerInfo,
+  updateProfileData,
+} from "./user.js";
 
 export {
   login,
   register,
+  logout,
   isUserLoggedIn,
   getUser,
   verifyEmail,
   resendVerificationEmail,
-  getAllInvites,
-  addNewInvite,
-  resendInvite,
+  completeOnboarding,
+  updateProfileData,
+  getMyProfile,
+  getPublicProfile,
+  getEditorOwnerInfo,
+  addNewInvites,
   acceptInvite,
+  resendInvite,
+  verifyInvite,
+  removeInvite,
+  removeEditor,
+  getPendingInvites,
+  getInvitedEditors,
   addNewSpace,
   getNamesOfOwnerSpaces,
   modifySpace,
@@ -89,5 +111,5 @@ export {
   generateTitle,
   generateSpaceDescription,
   generateThreadContent,
-  rehrase,
+  rephrase,
 };
