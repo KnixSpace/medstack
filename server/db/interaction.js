@@ -5,7 +5,7 @@ const interactionCollection = client
   .db(process.env.DB_NAME)
   .collection("interaction");
 
-export const readThreadIntractions = async (threadId, pageSize, skipCount) => {
+export const readThreadInteractions = async (threadId, pageSize, skipCount) => {
   const pipeline = [
     {
       $match: {

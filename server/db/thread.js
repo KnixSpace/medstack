@@ -1,3 +1,4 @@
+import { threadStatus } from "../constants/enums.js";
 import {
   featuredThreadsPipeline,
   threadDetailsPipeline,
@@ -28,8 +29,7 @@ export const readThreadsOfSpace = async (
   const pipeline = [];
   const matchStage = {
     spaceId,
-    isApproved: true,
-    status: "P",
+    status: threadStatus.published,
   };
 
   if (filters.tags?.length) {
@@ -70,8 +70,7 @@ export const readFeaturedThreads = async (
   const pageSize = 2;
 
   const totalDocuments = await countsOfThreads({
-    isApproved: true,
-    status: "P",
+    status: threadStatus.published,
   });
   if (totalDocuments && pageSize) {
     pipeline.push({ $skip: skipCount });
@@ -92,6 +91,181 @@ export const readFeaturedThreads = async (
     list,
   };
 };
+
+export const readMyThreads = async (userId) =>
+  await threadCollection
+    .aggregate([
+      {
+        $match: {
+          $or: [{ ownerId: userId }, { editorId: userId }],
+        },
+      },
+      {
+        $lookup: {
+          from: "space",
+          localField: "spaceId",
+          foreignField: "spaceId",
+          pipeline: [
+            {
+              $project: {
+                _id: 0,
+                title: 1,
+              },
+            },
+          ],
+          as: "spaceTitle",
+        },
+      },
+      {
+        $addFields: {
+          spaceTitle: {
+            $ifNull: [
+              {
+                $arrayElemAt: ["$spaceTitle.title", 0],
+              },
+              null,
+            ],
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "user",
+          localField: "editorId",
+          foreignField: "userId",
+          pipeline: [
+            {
+              $project: {
+                _id: 0,
+                name: 1,
+                avatar: 1,
+              },
+            },
+          ],
+          as: "editorDetails",
+        },
+      },
+      {
+        $addFields: {
+          editorName: {
+            $ifNull: [
+              {
+                $arrayElemAt: ["$editorDetails.name", 0],
+              },
+              null,
+            ],
+          },
+          editorAvatar: {
+            $ifNull: [
+              {
+                $arrayElemAt: ["$editorDetails.avatar", 0],
+              },
+              null,
+            ],
+          },
+        },
+      },
+      {
+        $project: {
+          editorDetails: 0,
+        },
+      },
+      {
+        $project: {
+          content: 0,
+          _id: 0,
+        },
+      },
+    ])
+    .toArray();
+
+export const readPendingApprovalThreads = async (userId) =>
+  await threadCollection
+    .aggregate([
+      {
+        $match: {
+          $or: [{ ownerId: userId }, { editorId: userId }],
+          status: threadStatus.awaitingApproval,
+        },
+      },
+      {
+        $lookup: {
+          from: "space",
+          localField: "spaceId",
+          foreignField: "spaceId",
+          pipeline: [
+            {
+              $project: {
+                _id: 0,
+                title: 1,
+              },
+            },
+          ],
+          as: "spaceTitle",
+        },
+      },
+      {
+        $addFields: {
+          spaceTitle: {
+            $ifNull: [
+              {
+                $arrayElemAt: ["$spaceTitle.title", 0],
+              },
+              null,
+            ],
+          },
+        },
+      },
+      {
+        $project: {
+          content: 0,
+          _id: 0,
+        },
+      },
+      {
+        $lookup: {
+          from: "user",
+          localField: "editorId",
+          foreignField: "userId",
+          pipeline: [
+            {
+              $project: {
+                _id: 0,
+                name: 1,
+                avatar: 1,
+              },
+            },
+          ],
+          as: "editorDetails",
+        },
+      },
+      {
+        $addFields: {
+          editorName: {
+            $ifNull: [
+              {
+                $arrayElemAt: ["$editorDetails.name", 0],
+              },
+              null,
+            ],
+          },
+          editorAvatar: {
+            $ifNull: [
+              {
+                $arrayElemAt: ["$editorDetails.avatar", 0],
+              },
+              null,
+            ],
+          },
+        },
+      },
+      {
+        $project: {
+          editorDetails: 0,
+        },
+      },
+    ])
+    .toArray();
 
 export const readAllThreads = async (filter, option) =>
   await threadCollection.find(filter, option).toArray();

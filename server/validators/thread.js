@@ -9,7 +9,7 @@ import {
   userRole,
 } from "../constants/enums.js";
 import { readComment } from "../db/comment.js";
-import { isValidQueries } from "./common.js";
+import { isValidImageUrl, isValidQueries } from "./common.js";
 
 export const validateThreadId = async (ctx, errors) => {
   const threadId = ctx.params.threadId;
@@ -28,7 +28,7 @@ export const validateThreadId = async (ctx, errors) => {
 };
 
 export const validateThreadSpace = async (ctx, errors) => {
-  const spaceId = ctx.params.spaceId || ctx.state.thread?.spaceId;
+  const spaceId = ctx.request.body.spaceId || ctx.state.thread?.spaceId;
 
   if (spaceId === undefined) {
     if (ctx.url.includes("/create")) {
@@ -45,6 +45,18 @@ export const validateThreadSpace = async (ctx, errors) => {
   }
 
   ctx.state.space = space;
+};
+
+export const validateThreadStatus = async (ctx, errors) => {
+  if (ctx.state.thread === undefined) return;
+
+  const { status } = ctx.state.thread;
+
+  const url = ctx.request.url;
+  if (url.includes("send-for-approval") && status !== threadStatus.draft) {
+    errors.push(buildPropertyError("status", "thread is not draft"));
+    return;
+  }
 };
 
 export const validateThreadIsPublished = async (ctx, errors) => {
@@ -201,20 +213,20 @@ export const validateThreadCommentOwnership = async (ctx, errors) => {
 };
 
 export const validateThreadCommentContent = (ctx, errors) => {
-  const { content } = ctx.request.body;
+  const { comment } = ctx.request.body;
 
-  if (content === undefined) {
+  if (comment === undefined) {
     errors.push(buildPropertyError("content", "comment content required"));
     return;
-  } else if (typeof content !== "string") {
+  } else if (typeof comment !== "string") {
     errors.push(
       buildPropertyError("content", "comment content must be string")
     );
     return;
   }
 
-  const sanitizedContent = content.trim();
-  if (sanitizedContent.length < 1 || sanitizedContent.split(/s+/).length > 16) {
+  const sanitizedComment = comment.trim();
+  if (sanitizedComment.length < 1 || sanitizedComment.split(/s+/).length > 16) {
     errors.push(
       buildPropertyError("content", "comment content be 1 to 16 words")
     );
@@ -222,7 +234,7 @@ export const validateThreadCommentContent = (ctx, errors) => {
   }
 
   ctx.state.shared = Object.assign(
-    { content: sanitizedContent },
+    { comment: sanitizedComment },
     ctx.state.shared
   );
 };
@@ -239,18 +251,15 @@ export const validateThreadContent = (ctx, errors) => {
     return;
   }
 
-  const splitContent = content.trim();
-  if (
-    splitContent.split(/\s+/).length < 10 ||
-    splitContent.split(/\s+/).length > 500
-  ) {
+  const parsedContent = JSON.parse(content);
+  if (parsedContent.blocks.length < 5 || parsedContent.blocks.length > 1024) {
     errors.push(
-      buildPropertyError("content", "content must be of 10 to 500 words")
+      buildPropertyError("content", "content must be of 5 to 1024 blocks")
     );
     return;
   }
 
-  ctx.state.shared = Object.assign({ content: splitContent }, ctx.state.shared);
+  ctx.state.shared = Object.assign({ content }, ctx.state.shared);
 };
 
 export const validateThreadTags = (ctx, errors) => {
@@ -260,10 +269,12 @@ export const validateThreadTags = (ctx, errors) => {
     errors.push(buildPropertyError("tags", "tags is required"));
   } else if (tags.length > 5) {
     errors.push(buildPropertyError("tags", "maximum tags allowed  is only 5"));
-  } else if (!tags.every((tag) => typeof tag === "string")) {
+  } else if (!tags.every((tag) => typeof tag.name === "string")) {
     errors.push(buildPropertyError("tags", "tags must be string"));
   } else if (
-    !tags.every((tag) => tag.trim().length > 0 && tag.trim().length <= 16)
+    !tags.every(
+      (tag) => tag.name.trim().length > 0 && tag.name.trim().length <= 16
+    )
   ) {
     errors.push(
       buildPropertyError("tags", "tags must be between 1 to 16 characters")
@@ -271,13 +282,38 @@ export const validateThreadTags = (ctx, errors) => {
   } else {
     ctx.state.shared = Object.assign(
       {
-        tags: Array.from(
-          new Set(tags.map((tag) => tag.split(/\s+/).join(" ").toLowerCase()))
-        ),
+        tags: tags.map((tag) => {
+          return {
+            id: tag.id,
+            name: tag.name.split(/\s+/).join(" ").toLowerCase(),
+          };
+        }),
       },
       ctx.state.shared
     );
   }
+};
+
+export const validateThreadCoverImage = (ctx, errors) => {
+  const { coverImage } = ctx.request.body;
+
+  if (!coverImage) return;
+
+  if (typeof coverImage !== "string") {
+    errors.push(buildPropertyError("coverImage", "must be string"));
+    return;
+  }
+
+  const sanitizedCoverImage = coverImage.trim();
+  if (!isValidImageUrl(sanitizedCoverImage)) {
+    errors.push(buildPropertyError("coverImage", "invalid image url"));
+    return;
+  }
+
+  ctx.state.shared = Object.assign(
+    { coverImage: sanitizedCoverImage },
+    ctx.state.shared
+  );
 };
 
 export const validateThreadIsApprovedToPublished = (ctx, errors) => {
@@ -298,6 +334,9 @@ export const validateThreadModificationData = (ctx, errors) => {
 
   validateThreadTitle(ctx, errors);
   validateThreadContent(ctx, errors);
+  validateThreadTags(ctx, errors);
+  validateThreadCoverImage(ctx, errors);
+  validateThreadSpace(ctx, errors);
 };
 
 export const validateThreadQueryParameters = (ctx, errors) => {

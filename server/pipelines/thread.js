@@ -1,3 +1,5 @@
+import { threadStatus } from "../constants/enums.js";
+
 export const threadDetailsPipeline = (threadId) => [
   {
     $match: {
@@ -79,7 +81,7 @@ export const featuredThreadsPipeline = (
 
   return [
     {
-      $match: { isApproved: true, status: "P", ...matchStage },
+      $match: { status: threadStatus.published, ...matchStage },
     },
     {
       $lookup: {
@@ -145,7 +147,6 @@ export const featuredThreadsPipeline = (
         ownerId: 0,
         updatedOn: 0,
         status: 0,
-        isApproved: 0,
         space: 0,
         user: 0,
       },

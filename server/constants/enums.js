@@ -7,6 +7,7 @@ export const userRole = Object.freeze({
 
 export const threadStatus = Object.freeze({
   draft: "D",
+  awaitingApproval: "A",
   revision: "R",
   published: "P",
 });

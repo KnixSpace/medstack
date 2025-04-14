@@ -5,18 +5,23 @@ import {
   createThread,
   readAllThreads,
   readFeaturedThreads,
+  readMyThreads,
+  readPendingApprovalThreads,
   readThreadDetails,
   updateThread,
 } from "../db/thread.js";
 import {
-  sendbackThreadForUpadte,
+  sendbackThreadForUpdate,
   sendNewsletter,
   sendThreadApprovedNotification,
   sendThreadPublishApproval,
 } from "../emails/threads.js";
 import { frontend } from "../constants/config.js";
 import { readUser } from "../db/user.js";
-import { readThreadIntractions, updateInteraction } from "../db/interaction.js";
+import {
+  readThreadInteractions,
+  updateInteraction,
+} from "../db/interaction.js";
 import {
   createComment,
   deleteComments,
@@ -32,8 +37,7 @@ import { cacheData, getCachedData } from "../config/redis.js";
 export const addNewThread = async (ctx) => {
   const { spaceId, ownerId } = ctx.state.space;
   const { userId: editorId } = ctx.request.user;
-  const { name: ownerName, email: ownerEmail } = ctx.state.owner;
-  const { title, content, tags } = ctx.state.shared;
+  const { title, content, tags, coverImage } = ctx.state.shared;
 
   const thread = {
     threadId: uuidV4(),
@@ -42,49 +46,78 @@ export const addNewThread = async (ctx) => {
     editorId,
     title,
     content,
+    coverImage,
     tags,
-    isApproved: false,
     status: threadStatus.draft,
     createdOn: new Date(),
     updatedOn: new Date(),
   };
   await createThread(thread);
+  ctx.body = {
+    message: "thread created successfully...",
+    data: { threadId: thread.threadId },
+  };
+};
+
+export const modifyThread = async (ctx) => {
+  const { threadId } = ctx.state.thread;
+
+  await updateThread(threadId, {
+    status: threadStatus.draft,
+    ...ctx.state.shared,
+  });
+
+  ctx.body = { message: "thread updated successfully" };
+};
+
+export const sendThreadForApproval = async (ctx) => {
+  const { title, threadId } = ctx.state.thread;
+  const { email: ownerEmail, name: ownerName } = ctx.state.owner;
+
+  await updateThread(threadId, {
+    status: threadStatus.awaitingApproval,
+  });
+
   await sendThreadPublishApproval(ownerEmail, {
     ownerName,
-    postTitle: title,
-    approvalLink: `${frontend}/threads/review`,
+    threadTitle: title,
+    approvalLink: `${frontend}/settings/thread-approvals`,
   });
 
-  ctx.body = { message: "thread created and send for owner approval" };
+  ctx.body = { message: "thread sent for approval" };
 };
 
-export const getAllPendingReviewThread = async (ctx) => {
-  const { userId } = ctx.request.user;
+export const requestThreadCorrection = async (ctx) => {
+  const { rejectionReason = "" } = ctx.request.body || {};
+  const { threadId, title: postTitle } = ctx.state.thread;
+  const { email: editorEmail, name: editorName } = ctx.state.editor;
 
-  const threads = await readAllThreads({
-    $or: [{ ownerId: userId }, { editorId: userId }],
-    isApproved: false,
-  });
-
-  if (!threads.length) {
-    ctx.body = { message: "no pending threads for review" };
-    return;
-  }
-
-  ctx.body = threads;
-};
-
-export const approveToPublishThread = async (ctx) => {
-  const { threadId, spaceId, editorId, title } = ctx.state.thread;
   await updateThread(threadId, {
-    isApproved: true,
+    status: threadStatus.revision,
+    rejectionReason,
+  });
+  await sendbackThreadForUpdate(editorEmail, {
+    editorName,
+    postTitle,
+    threadLink: `${frontend}/thread/edit/${threadId}`,
+  });
+
+  ctx.body = { message: "thread send back for correction" };
+};
+
+export const publishThread = async (ctx) => {
+  const { threadId, spaceId, editorId, title } = ctx.state.thread;
+
+  await updateThread(threadId, {
+    publishedOn: new Date(),
     status: threadStatus.published,
   });
+
   const editor = await readUser({ userId: editorId });
   await sendThreadApprovedNotification(editor.email, {
     editorName: editor.name,
     postTitle: title,
-    postLink: `${frontend}/thread/${threadId}`,
+    postLink: `${frontend}/thread/view/${threadId}`,
   });
 
   const newsletterSubscribers = await readNewsletterEnabledSubscriptions(
@@ -99,45 +132,13 @@ export const approveToPublishThread = async (ctx) => {
         await sendNewsletter(subscriber.email, {
           title,
           userName: subscriber.name,
-          link: `${frontend}/thread/${threadId}`,
+          link: `${frontend}/thread/view/${threadId}`,
         });
       },
       { concurrency: 5 }
     );
   }
-  ctx.body = { message: "thread approved successfully" };
-};
-
-export const sendbackThread = async (ctx) => {
-  const { threadId, title: postTitle } = ctx.state.thread;
-  const { email: editorEmail, name: editorName } = ctx.state.editor;
-
-  await updateThread(threadId, { status: threadStatus.revision });
-  await sendbackThreadForUpadte(editorEmail, {
-    editorName,
-    postTitle,
-    threadLink: `${frontend}/thread/edit/${threadId}`,
-  });
-
-  ctx.body = { message: "thread sendback for approval" };
-};
-
-export const resendToPublishThread = async (ctx) => {
-  const { title: postTitle } = ctx.state.thread;
-  const { email: ownerEmail, name: ownerName } = ctx.state.owner;
-
-  await sendThreadPublishApproval(ownerEmail, {
-    ownerName,
-    postTitle,
-    approvalLink: `${frontend}/threads/review`,
-  });
-  ctx.body = { message: "resend for approval to publish" };
-};
-
-export const modifyThread = async (ctx) => {
-  const { threadId } = ctx.state.thread;
-  await updateThread(threadId, ctx.state.shared);
-  ctx.body = { message: "thread updated successfully" };
+  ctx.body = { message: "Thread publish successfully" };
 };
 
 export const toggleThreadInteraction = async (ctx) => {
@@ -149,7 +150,7 @@ export const toggleThreadInteraction = async (ctx) => {
   ctx.body = { message: `thread ${interaction}` };
 };
 
-export const addThreadComment = async (ctx) => {
+export const commentOnThread = async (ctx) => {
   const { userId } = ctx.request.user;
   const { threadId } = ctx.state.thread;
 
@@ -172,57 +173,49 @@ export const removeThreadComment = async (ctx) => {
   ctx.body = { message: "comment deleted" };
 };
 
+export const getMyThreads = async (ctx) => {
+  const { userId } = ctx.request.user;
+
+  const threads = await readMyThreads(userId);
+
+  ctx.status = 200;
+  ctx.body = { message: "threads fetched successfully", data: threads };
+};
+
+export const getPendingApprovalThreads = async (ctx) => {
+  const { userId } = ctx.request.user;
+
+  const threads = await readPendingApprovalThreads(userId);
+
+  if (!threads.length) {
+    ctx.body = { message: "no pending threads for review" };
+    return;
+  }
+
+  ctx.body = { message: "threads fetched successfully", data: threads };
+};
+
+export const getThreadDataForEdit = async (ctx) => {
+  const thread = ctx.state.thread;
+
+  if (!thread) {
+    ctx.body = { message: "no thread found" };
+    return;
+  }
+  ctx.body = { message: "thread fetched successfully", data: thread };
+};
+
 export const getThread = async (ctx) => {
   const { threadId } = ctx.state.thread;
   const thread = await readThreadDetails(threadId);
   ctx.body = thread[0];
 };
 
-export const getFeaturedThreads = async (ctx) => {
-  const tags = ctx.state.shared?.tags;
-  const query = ctx.state.shared?.query;
-  const { skipCount = 0 } = ctx.state.page || {};
-
-  const cachedThreads = await getCachedData(`featured-threads-${skipCount}`);
-  if (cachedThreads) {
-    ctx.body = cachedThreads;
-    return;
-  }
-
-  const threads = await readFeaturedThreads(tags, query?.listing, skipCount);
-
-  await cacheData(`featured-threads-${skipCount}`, 1800, threads);
-
-  if (!threads.list.length) {
-    ctx.body = { message: "no thread to show" };
-    return;
-  }
-
-  ctx.body = threads;
-};
-
-export const getSubscribedSpacesThreads = async (ctx) => {
-  const { userId } = ctx.request.user;
-  const { pageSize = null, skipCount = 0 } = ctx.state.page || {};
-
-  const threads = await readSubscribedSpacesThreads(
-    userId,
-    pageSize,
-    skipCount
-  );
-  if (!threads.list.length) {
-    ctx.body = { message: "no subscribed spaces threads to show" };
-    return;
-  }
-
-  ctx.body = threads;
-};
-
 export const getThreadInteractions = async (ctx) => {
   const { threadId } = ctx.state.thread;
   const { pageSize = null, skipCount = 0 } = ctx.state.page || {};
 
-  const interactions = await readThreadIntractions(
+  const interactions = await readThreadInteractions(
     threadId,
     pageSize,
     skipCount
@@ -265,4 +258,44 @@ export const getThreadCommentReplies = async (ctx) => {
   }
 
   ctx.body = replies;
+};
+
+export const getFeaturedThreads = async (ctx) => {
+  const tags = ctx.state.shared?.tags;
+  const query = ctx.state.shared?.query;
+  const { skipCount = 0 } = ctx.state.page || {};
+
+  const cachedThreads = await getCachedData(`featured-threads-${skipCount}`);
+  if (cachedThreads) {
+    ctx.body = cachedThreads;
+    return;
+  }
+
+  const threads = await readFeaturedThreads(tags, query?.listing, skipCount);
+
+  await cacheData(`featured-threads-${skipCount}`, 1800, threads);
+
+  if (!threads.list.length) {
+    ctx.body = { message: "no thread to show" };
+    return;
+  }
+
+  ctx.body = threads;
+};
+
+export const getSubscribedSpacesThreads = async (ctx) => {
+  const { userId } = ctx.request.user;
+  const { pageSize = null, skipCount = 0 } = ctx.state.page || {};
+
+  const threads = await readSubscribedSpacesThreads(
+    userId,
+    pageSize,
+    skipCount
+  );
+  if (!threads.list.length) {
+    ctx.body = { message: "no subscribed spaces threads to show" };
+    return;
+  }
+
+  ctx.body = threads;
 };

@@ -116,17 +116,20 @@ export const getOwnerSpacesWithSubscribersCount = async (ctx) => {
 
 export const getNamesOfOwnerSpaces = async (ctx) => {
   const ownerId = ctx.state.owner.userId;
+
   const spaces = await readAllSpaces(
     { ownerId },
     { projection: { spaceId: 1, title: 1 } }
   );
-
   if (!spaces.length) {
     ctx.body = { message: "no space found" };
     return;
   }
 
-  ctx.body = spaces;
+  ctx.body = {
+    message: "spaces found",
+    data: spaces,
+  };
 };
 
 export const getSpaceSubscribers = async (ctx) => {

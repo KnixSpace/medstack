@@ -25,7 +25,7 @@ export const createJwtInvitationLink = (data) =>
   `${frontend}/auth/team-invite/${generateJwt(
     data,
     process.env.JWT_CLIENT_INVITE_KEY,
-    "10m"
+    "7d"
   )}`;
 
 export const createNextPageToken = (

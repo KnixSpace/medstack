@@ -1,27 +1,28 @@
 import { isAuthenticated } from "../middlewares/auth.js";
 import {
   addNewThread,
-  approveToPublishThread,
-  getAllPendingReviewThread,
   modifyThread,
-  resendToPublishThread,
-  sendbackThread,
+  sendThreadForApproval,
+  requestThreadCorrection,
+  publishThread,
   toggleThreadInteraction,
-  addThreadComment,
+  commentOnThread,
   removeThreadComment,
+  getPendingApprovalThreads,
+  getThreadDataForEdit,
   getThread,
   getThreadInteractions,
   getThreadComments,
   getThreadCommentReplies,
   getFeaturedThreads,
   getSubscribedSpacesThreads,
+  getMyThreads,
 } from "../controllers/index.js";
 import { validate } from "../utils/validate.js";
 import {
   validateThreadContent,
   validateThreadEditor,
   validateThreadId,
-  validateThreadIsApprovedToPublished,
   validateThreadIsPublished,
   validateThreadModificationData,
   validateThreadOwnership,
@@ -35,6 +36,8 @@ import {
   validateThreadParentCommentId,
   validateThreadQueryTags,
   validateThreadQueryParameters,
+  validateThreadCoverImage,
+  validateThreadStatus,
 } from "../validators/thread.js";
 
 import Router from "@koa/router";
@@ -42,7 +45,7 @@ import { validatePagination } from "../validators/miscellaneous.js";
 const router = new Router({ prefix: "/api/v1/thread" });
 
 router.post(
-  "/create/:spaceId",
+  "/create",
   isAuthenticated("E"),
   validate([
     validateThreadSpace,
@@ -50,42 +53,12 @@ router.post(
     validateThreadTitle,
     validateThreadContent,
     validateThreadTags,
+    validateThreadCoverImage,
   ]),
   addNewThread
 );
 
-router.get(
-  "/list/pending-review",
-  isAuthenticated("O", "E"),
-  getAllPendingReviewThread
-);
-
-router.post(
-  "/publish/:threadId",
-  isAuthenticated("O"),
-  validate([
-    validateThreadId,
-    validateThreadSpace,
-    validateThreadOwnership,
-    validateThreadIsApprovedToPublished,
-  ]),
-  approveToPublishThread
-);
-
-router.post(
-  "/revise/:threadId",
-  isAuthenticated("O"),
-  validate([
-    validateThreadId,
-    validateThreadSpace,
-    validateThreadOwnership,
-    validateThreadIsApprovedToPublished,
-    validateThreadEditor,
-  ]),
-  sendbackThread
-);
-
-router.post(
+router.put(
   "/update/:threadId",
   isAuthenticated("E"),
   validate([
@@ -98,15 +71,34 @@ router.post(
 );
 
 router.post(
-  "/resend/:threadId",
+  "/send-for-approval/:threadId",
   isAuthenticated("E"),
   validate([
     validateThreadId,
     validateThreadSpace,
     validateThreadOwnership,
-    validateThreadIsApprovedToPublished,
+    validateThreadStatus,
   ]),
-  resendToPublishThread
+  sendThreadForApproval
+);
+
+router.post(
+  "/request-correction/:threadId",
+  isAuthenticated("O"),
+  validate([
+    validateThreadId,
+    validateThreadSpace,
+    validateThreadOwnership,
+    validateThreadEditor,
+  ]),
+  requestThreadCorrection
+);
+
+router.post(
+  "/publish/:threadId",
+  isAuthenticated("O"),
+  validate([validateThreadId, validateThreadSpace, validateThreadOwnership]),
+  publishThread
 );
 
 router.post(
@@ -130,7 +122,7 @@ router.post(
     validateThreadSpace,
     validateThreadCommentContent,
   ]),
-  addThreadComment
+  commentOnThread
 );
 
 router.post(
@@ -143,7 +135,7 @@ router.post(
     validateThreadCommentContent,
     validateThreadParentCommentId,
   ]),
-  addThreadComment
+  commentOnThread
 );
 
 router.delete(
@@ -151,6 +143,21 @@ router.delete(
   isAuthenticated(),
   validate([validateThreadCommentId, validateThreadCommentOwnership]),
   removeThreadComment
+);
+
+router.get("/list/my-threads", isAuthenticated("E", "O"), getMyThreads);
+
+router.get(
+  "/list/pending-approval",
+  isAuthenticated("O", "E"),
+  getPendingApprovalThreads
+);
+
+router.get(
+  "/details/edit/:threadId",
+  isAuthenticated("E", "O"),
+  validate([validateThreadId]),
+  getThreadDataForEdit
 );
 
 router.get("/details/:threadId", validate([validateThreadId]), getThread);
@@ -166,7 +173,7 @@ router.get(
 );
 
 router.get(
-  "/list/reply/:threadId",
+  "/list/comment/replies/:threadId",
   validate([
     validateThreadId,
     validateThreadParentCommentId,

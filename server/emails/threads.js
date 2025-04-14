@@ -6,7 +6,7 @@ export const sendThreadPublishApproval = async (to, data) =>
 export const sendThreadApprovedNotification = async (to, data) =>
   await sendEmail(to, "Thread Published!", "threadApprovedToPublish", data);
 
-export const sendbackThreadForUpadte = async (to, data) =>
+export const sendbackThreadForUpdate = async (to, data) =>
   await sendEmail(to, "Thread Needs Update", "threadSendbackForUpdate", data);
 
 export const sendNewsletter = async (to, data) =>

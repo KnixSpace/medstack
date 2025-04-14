@@ -1,3 +1,5 @@
+import { threadStatus } from "../constants/enums.js";
+
 export const userSubscriptionPipeline = (userId) => [
   {
     $match: {
@@ -106,8 +108,7 @@ export const subscribedSpacesThreadsPipeline = (userId) => [
       pipeline: [
         {
           $match: {
-            isApproved: true,
-            status: "P",
+            status: threadStatus.published,
           },
         },
         {
@@ -192,7 +193,6 @@ export const subscribedSpacesThreadsPipeline = (userId) => [
             ownerId: 0,
             updatedOn: 0,
             status: 0,
-            isApproved: 0,
           },
         },
       ],
