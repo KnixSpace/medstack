@@ -1,3 +1,4 @@
+import { pipeline } from "stream";
 import { threadStatus } from "../constants/enums.js";
 
 export const threadDetailsPipeline = (threadId) => [
@@ -11,22 +12,39 @@ export const threadDetailsPipeline = (threadId) => [
       from: "space",
       localField: "spaceId",
       foreignField: "spaceId",
-      as: "space",
+      pipeline: [
+        {
+          $project: {
+            _id: 0,
+            title: 1,
+          },
+        },
+      ],
+      as: "spaceDetails",
     },
   },
   {
-    $addFields: { space: { $arrayElemAt: ["$space", 0] } },
+    $addFields: { spaceDetails: { $arrayElemAt: ["$spaceDetails", 0] } },
   },
   {
     $lookup: {
       from: "user",
       localField: "ownerId",
       foreignField: "userId",
-      as: "owner",
+      pipeline: [
+        {
+          $project: {
+            _id: 0,
+            name: 1,
+            avatar: 1,
+          },
+        },
+      ],
+      as: "ownerDetails",
     },
   },
   {
-    $addFields: { owner: { $arrayElemAt: ["$owner", 0] } },
+    $addFields: { ownerDetails: { $arrayElemAt: ["$ownerDetails", 0] } },
   },
   {
     $lookup: {
@@ -36,34 +54,13 @@ export const threadDetailsPipeline = (threadId) => [
         { $match: { $expr: { $eq: ["$threadId", "$$threadId"] } } },
         { $group: { _id: null, total: { $sum: 1 } } },
       ],
-      as: "interactions",
+      as: "interactionsCount",
     },
   },
   {
     $addFields: {
-      interactions: {
-        $ifNull: [{ $arrayElemAt: ["$interactions.total", 0] }, 0],
-      },
-    },
-  },
-  {
-    $project: {
-      space: {
-        _id: 0,
-        spaceId: 0,
-        ownerId: 0,
-        createdOn: 0,
-        updatedOn: 0,
-      },
-      owner: {
-        _id: 0,
-        password: 0,
-        email: 0,
-        userId: 0,
-        role: 0,
-        subscribedTags: 0,
-        createdOn: 0,
-        updatedOn: 0,
+      interactionsCount: {
+        $ifNull: [{ $arrayElemAt: ["$interactionsCount.total", 0] }, 0],
       },
     },
   },

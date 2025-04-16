@@ -45,6 +45,10 @@ export const validateThreadSpace = async (ctx, errors) => {
   }
 
   ctx.state.space = space;
+
+  if (ctx.request.url.includes("update")) {
+    ctx.state.shared = Object.assign({ spaceId }, ctx.state.shared);
+  }
 };
 
 export const validateThreadStatus = async (ctx, errors) => {
@@ -213,22 +217,30 @@ export const validateThreadCommentOwnership = async (ctx, errors) => {
 };
 
 export const validateThreadCommentContent = (ctx, errors) => {
-  const { comment } = ctx.request.body;
+  const content = ctx.request.body.comment || ctx.request.body.reply;
 
-  if (comment === undefined) {
+  if (content === undefined) {
     errors.push(buildPropertyError("content", "comment content required"));
     return;
-  } else if (typeof comment !== "string") {
+  } else if (typeof content !== "string") {
     errors.push(
       buildPropertyError("content", "comment content must be string")
     );
     return;
   }
 
-  const sanitizedComment = comment.trim();
+  const sanitizedComment = content.trim();
   if (sanitizedComment.length < 1 || sanitizedComment.split(/s+/).length > 16) {
     errors.push(
       buildPropertyError("content", "comment content be 1 to 16 words")
+    );
+    return;
+  }
+
+  if (ctx.request.body.reply) {
+    ctx.state.shared = Object.assign(
+      { reply: sanitizedComment },
+      ctx.state.shared
     );
     return;
   }

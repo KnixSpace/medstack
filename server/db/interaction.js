@@ -23,13 +23,16 @@ export const readThreadInteractions = async (threadId, pageSize, skipCount) => {
     },
     {
       $set: {
-        name: { $arrayElemAt: ["$user.name", 0] },
+        userName: { $arrayElemAt: ["$user.name", 0] },
+        userAvatar: { $arrayElemAt: ["$user.avatar", 0] },
       },
     },
     {
       $project: {
         interaction: 1,
-        name: 1,
+        userId: 1,
+        userName: 1,
+        userAvatar: 1,
       },
     },
   ];

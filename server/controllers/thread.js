@@ -7,6 +7,7 @@ import {
   readFeaturedThreads,
   readMyThreads,
   readPendingApprovalThreads,
+  readThreadDataForPreview,
   readThreadDetails,
   updateThread,
 } from "../db/thread.js";
@@ -205,10 +206,29 @@ export const getThreadDataForEdit = async (ctx) => {
   ctx.body = { message: "thread fetched successfully", data: thread };
 };
 
+export const getThreadDataForPreview = async (ctx) => {
+  const { threadId } = ctx.state.thread;
+
+  const thread = await readThreadDataForPreview(threadId);
+
+  if (!thread.length) {
+    ctx.body = { message: "no thread found" };
+  }
+
+  ctx.status = 200;
+  ctx.body = {
+    message: "thread fetched successfully",
+    data: thread[0],
+  };
+};
+
 export const getThread = async (ctx) => {
   const { threadId } = ctx.state.thread;
   const thread = await readThreadDetails(threadId);
-  ctx.body = thread[0];
+  ctx.body = {
+    message: "thread fetched successfully",
+    data: thread[0],
+  };
 };
 
 export const getThreadInteractions = async (ctx) => {
@@ -225,7 +245,10 @@ export const getThreadInteractions = async (ctx) => {
     ctx.body = { message: "no comments found" };
   }
 
-  ctx.body = interactions;
+  ctx.body = {
+    message: "interactions fetched successfully",
+    data: interactions,
+  };
 };
 
 export const getThreadComments = async (ctx) => {
@@ -238,7 +261,10 @@ export const getThreadComments = async (ctx) => {
     ctx.body = { message: "no comments found" };
   }
 
-  ctx.body = comments;
+  ctx.body = {
+    message: "comments fetched successfully",
+    data: comments,
+  };
 };
 
 export const getThreadCommentReplies = async (ctx) => {
@@ -257,7 +283,10 @@ export const getThreadCommentReplies = async (ctx) => {
     ctx.body = { message: "no replies" };
   }
 
-  ctx.body = replies;
+  ctx.body = {
+    message: "replies fetched successfully",
+    data: replies,
+  };
 };
 
 export const getFeaturedThreads = async (ctx) => {

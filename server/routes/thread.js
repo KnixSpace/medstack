@@ -17,6 +17,7 @@ import {
   getFeaturedThreads,
   getSubscribedSpacesThreads,
   getMyThreads,
+  getThreadDataForPreview,
 } from "../controllers/index.js";
 import { validate } from "../utils/validate.js";
 import {
@@ -158,6 +159,13 @@ router.get(
   isAuthenticated("E", "O"),
   validate([validateThreadId]),
   getThreadDataForEdit
+);
+
+router.get(
+  "/details/preview/:threadId",
+  isAuthenticated("E", "O"),
+  validate([validateThreadId]),
+  getThreadDataForPreview
 );
 
 router.get("/details/:threadId", validate([validateThreadId]), getThread);

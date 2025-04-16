@@ -92,14 +92,10 @@ export const readFeaturedThreads = async (
   };
 };
 
-export const readMyThreads = async (userId) =>
+export const readThreadDataForPreview = async (threadId) =>
   await threadCollection
     .aggregate([
-      {
-        $match: {
-          $or: [{ ownerId: userId }, { editorId: userId }],
-        },
-      },
+      { $match: { threadId } },
       {
         $lookup: {
           from: "space",
@@ -113,15 +109,44 @@ export const readMyThreads = async (userId) =>
               },
             },
           ],
-          as: "spaceTitle",
+          as: "spaceDetails",
         },
       },
       {
         $addFields: {
-          spaceTitle: {
+          spaceDetails: {
             $ifNull: [
               {
-                $arrayElemAt: ["$spaceTitle.title", 0],
+                $arrayElemAt: ["$spaceDetails", 0],
+              },
+              null,
+            ],
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "user",
+          localField: "ownerId",
+          foreignField: "userId",
+          pipeline: [
+            {
+              $project: {
+                _id: 0,
+                name: 1,
+                avatar: 1,
+              },
+            },
+          ],
+          as: "ownerDetails",
+        },
+      },
+      {
+        $addFields: {
+          ownerDetails: {
+            $ifNull: [
+              {
+                $arrayElemAt: ["$ownerDetails", 0],
               },
               null,
             ],
@@ -147,18 +172,10 @@ export const readMyThreads = async (userId) =>
       },
       {
         $addFields: {
-          editorName: {
+          editorDetails: {
             $ifNull: [
               {
-                $arrayElemAt: ["$editorDetails.name", 0],
-              },
-              null,
-            ],
-          },
-          editorAvatar: {
-            $ifNull: [
-              {
-                $arrayElemAt: ["$editorDetails.avatar", 0],
+                $arrayElemAt: ["$editorDetails", 0],
               },
               null,
             ],
@@ -167,7 +184,75 @@ export const readMyThreads = async (userId) =>
       },
       {
         $project: {
-          editorDetails: 0,
+          _id: 0,
+        },
+      },
+    ])
+    .toArray();
+
+export const readMyThreads = async (userId) =>
+  await threadCollection
+    .aggregate([
+      {
+        $match: {
+          $or: [{ ownerId: userId }, { editorId: userId }],
+        },
+      },
+      {
+        $lookup: {
+          from: "space",
+          localField: "spaceId",
+          foreignField: "spaceId",
+          pipeline: [
+            {
+              $project: {
+                _id: 0,
+                title: 1,
+              },
+            },
+          ],
+          as: "spaceDetails",
+        },
+      },
+      {
+        $addFields: {
+          spaceDetails: {
+            $ifNull: [
+              {
+                $arrayElemAt: ["$spaceDetails", 0],
+              },
+              null,
+            ],
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "user",
+          localField: "editorId",
+          foreignField: "userId",
+          pipeline: [
+            {
+              $project: {
+                _id: 0,
+                name: 1,
+                avatar: 1,
+              },
+            },
+          ],
+          as: "editorDetails",
+        },
+      },
+      {
+        $addFields: {
+          editorDetails: {
+            $ifNull: [
+              {
+                $arrayElemAt: ["$editorDetails", 0],
+              },
+              null,
+            ],
+          },
         },
       },
       {
@@ -201,15 +286,15 @@ export const readPendingApprovalThreads = async (userId) =>
               },
             },
           ],
-          as: "spaceTitle",
+          as: "spaceDetails",
         },
       },
       {
         $addFields: {
-          spaceTitle: {
+          spaceDetails: {
             $ifNull: [
               {
-                $arrayElemAt: ["$spaceTitle.title", 0],
+                $arrayElemAt: ["$spaceDetails", 0],
               },
               null,
             ],
@@ -241,27 +326,14 @@ export const readPendingApprovalThreads = async (userId) =>
       },
       {
         $addFields: {
-          editorName: {
+          editorDetails: {
             $ifNull: [
               {
-                $arrayElemAt: ["$editorDetails.name", 0],
+                $arrayElemAt: ["$editorDetails", 0],
               },
               null,
             ],
           },
-          editorAvatar: {
-            $ifNull: [
-              {
-                $arrayElemAt: ["$editorDetails.avatar", 0],
-              },
-              null,
-            ],
-          },
-        },
-      },
-      {
-        $project: {
-          editorDetails: 0,
         },
       },
     ])

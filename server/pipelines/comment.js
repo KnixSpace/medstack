@@ -34,27 +34,28 @@ export const threadCommentsWithRepliesCountPipeline = (threadId) => [
       from: "user",
       localField: "userId",
       foreignField: "userId",
+      pipeline: [
+        {
+          $project: {
+            _id: 0,
+            name: 1,
+            avatar: 1,
+          },
+        },
+      ],
       as: "user",
     },
   },
   {
     $addFields: {
-      user: { $arrayElemAt: ["$user", 0] },
+      userName: { $arrayElemAt: ["$user.name", 0] },
+      userAvatar: { $arrayElemAt: ["$user.avatar", 0] },
     },
   },
   {
     $project: {
       _id: 0,
-      user: {
-        _id: 0,
-        password: 0,
-        createdOn: 0,
-        updatedOn: 0,
-        email: 0,
-        userId: 0,
-        subscribedTags: 0,
-        isVerified: 0,
-      },
+      user: 0,
     },
   },
   {
@@ -76,27 +77,28 @@ export const threadCommentRepliesPipeline = (threadId, parentId) => [
       from: "user",
       localField: "userId",
       foreignField: "userId",
+      pipeline: [
+        {
+          $project: {
+            _id: 0,
+            name: 1,
+            avatar: 1,
+          },
+        },
+      ],
       as: "user",
     },
   },
   {
     $addFields: {
-      user: { $arrayElemAt: ["$user", 0] },
+      userName: { $arrayElemAt: ["$user.name", 0] },
+      userAvatar: { $arrayElemAt: ["$user.avatar", 0] },
     },
   },
   {
     $project: {
       _id: 0,
-      user: {
-        _id: 0,
-        password: 0,
-        createdOn: 0,
-        updatedOn: 0,
-        email: 0,
-        userId: 0,
-        subscribedTags: 0,
-        isVerified: 0,
-      },
+      user: 0,
     },
   },
   {
