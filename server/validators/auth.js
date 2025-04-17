@@ -175,11 +175,16 @@ export const validateResendVerificationEmail = async (ctx, errors) => {
   } else {
     const user = await readUser(
       { email: email.trim() },
-      { projection: { userId: 1, name: 1 } }
+      { projection: { userId: 1, name: 1, isVerified: 1 } }
     );
 
     if (!user) {
       errors.push(buildPropertyError("email", "email not found"));
+      return;
+    }
+
+    if (user.isVerified) {
+      errors.push(buildPropertyError("email", "email is already verified"));
       return;
     }
 

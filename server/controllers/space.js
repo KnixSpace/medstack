@@ -10,6 +10,7 @@ import {
   createSubscription,
   deleteSubscription,
   readSpaceSubscribers,
+  readSubscription,
   readUserSubscriptions,
   updateSubscription,
 } from "../db/subscription.js";
@@ -101,7 +102,10 @@ export const getSpaceThreads = async (ctx) => {
     ctx.body = { message: "no threads to show" };
     return;
   }
-  ctx.body = threads;
+  ctx.body = {
+    message: "threads found",
+    data: threads,
+  };
 };
 
 export const getOwnerSpacesWithSubscribersCount = async (ctx) => {
@@ -140,7 +144,29 @@ export const getSpaceSubscribers = async (ctx) => {
   if (!subscribers.list.length) {
     ctx.body = { message: "no subscriber found" };
   }
-  ctx.body = subscribers;
+  ctx.body = {
+    message: "subscribers found",
+    data: subscribers,
+  };
+};
+
+export const getUserSubscriptionStatus = async (ctx) => {
+  const { userId } = ctx.request.user;
+  const { spaceId } = ctx.state.space;
+
+  const subscription = await readSubscription({
+    spaceId,
+    userId,
+  });
+
+  ctx.status = 200;
+  ctx.body = {
+    message: "subscription status found",
+    data: {
+      isSubscribed: !!subscription,
+      isNewsletter: subscription?.isNewsletter || false,
+    },
+  };
 };
 
 export const getUserSubscribedSpaces = async (ctx) => {

@@ -10,6 +10,7 @@ import {
   getNamesOfOwnerSpaces,
   getOwnerSpacesWithSubscribersCount,
   getSpaceThreads,
+  getUserSubscriptionStatus,
 } from "../controllers/index.js";
 import {
   validateSpaceOwner,
@@ -111,6 +112,13 @@ router.get(
   "/list/owned-with-subscribers/:ownerId",
   validate([validateOwnerId]),
   getOwnerSpacesWithSubscribersCount
+);
+
+router.get(
+  "/subscription/status/:spaceId",
+  isAuthenticated(),
+  validate([validateSpaceId]),
+  getUserSubscriptionStatus
 );
 
 router.get("/list/subscribed", isAuthenticated("U"), getUserSubscribedSpaces);

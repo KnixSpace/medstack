@@ -174,6 +174,18 @@ export const removeThreadComment = async (ctx) => {
   ctx.body = { message: "comment deleted" };
 };
 
+export const getOwnersThreads = async (ctx) => {
+  const { ownerId } = ctx.params;
+
+  const threads = await readAllThreads({
+    ownerId,
+    status: threadStatus.published,
+  });
+
+  ctx.status = 200;
+  ctx.body = { message: "threads fetched successfully", data: threads };
+};
+
 export const getMyThreads = async (ctx) => {
   const { userId } = ctx.request.user;
 
