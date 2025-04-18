@@ -32,7 +32,7 @@ router.post(
 
 router.post(
   "/generate/thread-content",
-  isAuthenticated("E"),
+  // isAuthenticated("E"),
   validate([validateGeminiPrompt, validatePromptTitle, validatePromptTone]),
   generateThreadContent
 );
