@@ -86,7 +86,7 @@ export const featuredThreadsPipeline = (
         localField: "spaceId",
         foreignField: "spaceId",
         pipeline: [{ $project: { _id: 0, title: 1 } }],
-        as: "space",
+        as: "spaceDetails",
       },
     },
     {
@@ -94,8 +94,8 @@ export const featuredThreadsPipeline = (
         from: "user",
         localField: "ownerId",
         foreignField: "userId",
-        pipeline: [{ $project: { _id: 0, name: 1 } }],
-        as: "user",
+        pipeline: [{ $project: { _id: 0, name: 1, avatar: 1 } }],
+        as: "ownerDetails",
       },
     },
     {
@@ -121,13 +121,9 @@ export const featuredThreadsPipeline = (
     },
     {
       $addFields: {
-        spaceTitle: {
-          $ifNull: [{ $arrayElemAt: ["$space.title", 0] }, null],
-        },
-        ownerName: {
-          $ifNull: [{ $arrayElemAt: ["$user.name", 0] }, null],
-        },
-        interactions: {
+        spaceDetails: { $arrayElemAt: ["$spaceDetails", 0] },
+        ownerDetails: { $arrayElemAt: ["$ownerDetails", 0] },
+        interactionsCount: {
           $ifNull: [
             {
               $arrayElemAt: ["$interactions.count", 0],
@@ -135,17 +131,6 @@ export const featuredThreadsPipeline = (
             0,
           ],
         },
-      },
-    },
-    {
-      $project: {
-        spaceId: 0,
-        editorId: 0,
-        ownerId: 0,
-        updatedOn: 0,
-        status: 0,
-        space: 0,
-        user: 0,
       },
     },
     {

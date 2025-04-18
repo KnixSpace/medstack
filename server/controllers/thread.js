@@ -320,20 +320,26 @@ export const getFeaturedThreads = async (ctx) => {
 
   const cachedThreads = await getCachedData(`featured-threads-${skipCount}`);
   if (cachedThreads) {
-    ctx.body = cachedThreads;
+    ctx.body = {
+      message: "threads fetched successfully",
+      data: cachedThreads,
+    };
     return;
   }
 
   const threads = await readFeaturedThreads(tags, query?.listing, skipCount);
 
-  await cacheData(`featured-threads-${skipCount}`, 1800, threads);
+  await cacheData(`featured-threads-${skipCount}`, 3600, threads);
 
   if (!threads.list.length) {
-    ctx.body = { message: "no thread to show" };
+    ctx.body = { message: "no thread to show", data: [] };
     return;
   }
 
-  ctx.body = threads;
+  ctx.body = {
+    message: "threads fetched successfully",
+    data: threads,
+  };
 };
 
 export const getSubscribedSpacesThreads = async (ctx) => {
