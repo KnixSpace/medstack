@@ -4,6 +4,7 @@ import {
   getEditorOwnerInfo,
   getMyProfile,
   getPublicProfile,
+  saveTags,
   updateProfileData,
 } from "../controllers/index.js";
 
@@ -18,6 +19,8 @@ import {
 const router = new Router({ prefix: "/api/v1/user" });
 
 router.post("/onboarding", isAuthenticated("O", "U"), completeOnboarding);
+
+router.post("/selected/tags", isAuthenticated(), saveTags);
 
 router.get("/me", isAuthenticated(), getMyProfile);
 

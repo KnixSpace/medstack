@@ -9,6 +9,7 @@ import {
   readPendingApprovalThreads,
   readThreadDataForPreview,
   readThreadDetails,
+  readThreadTags,
   updateThread,
 } from "../db/thread.js";
 import {
@@ -172,6 +173,17 @@ export const removeThreadComment = async (ctx) => {
 
   await deleteComments(commentId);
   ctx.body = { message: "comment deleted" };
+};
+
+export const getThreadTags = async (ctx) => {
+  const tags = (await readThreadTags()).flatMap((tag) => tag.tags);
+
+  if (!tags.length) {
+    ctx.body = { message: "no tags found", data: [] };
+    return;
+  }
+
+  ctx.body = { message: "tags fetched successfully", data: [...new Set(tags)] };
 };
 
 export const getOwnersThreads = async (ctx) => {

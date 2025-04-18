@@ -11,6 +11,8 @@ import {
   getOwnerSpacesWithSubscribersCount,
   getSpaceThreads,
   getUserSubscriptionStatus,
+  getSuggestedSpaces,
+  subscribeMultipleSpaces,
 } from "../controllers/index.js";
 import {
   validateSpaceOwner,
@@ -59,24 +61,28 @@ router.put(
 
 router.post(
   "/subscribe/:spaceId",
-  isAuthenticated("U"),
+  isAuthenticated(),
   validate([validateSpaceId, validateSpaceSubscription]),
   subscribeSpace
 );
 
+router.post("/multi/subscribe", isAuthenticated("U"), subscribeMultipleSpaces);
+
 router.post(
   "/unsubscribe/:spaceId",
-  isAuthenticated("U"),
+  isAuthenticated(),
   validate([validateSpaceId, validateSpaceSubscription]),
   unsubscribeSpace
 );
 
 router.post(
   "/newsletter/:spaceId",
-  isAuthenticated("U"),
+  isAuthenticated(),
   validate([validateSpaceId, validateSpaceSubscription]),
   toggleSpaceNewsletter
 );
+
+router.post("/list/suggested", isAuthenticated(), getSuggestedSpaces);
 
 router.get("/:spaceId", validate([validateSpaceId]), getSpace);
 

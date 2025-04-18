@@ -14,6 +14,23 @@ export const createThread = async (thread) =>
 export const countsOfThreads = async (filter) =>
   await threadCollection.countDocuments(filter);
 
+export const readThreadTags = async () => {
+  const pipeline = [
+    {
+      $group: {
+        _id: "$tags",
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        tags: "$_id",
+      },
+    },
+  ];
+  return await threadCollection.aggregate(pipeline).toArray();
+};
+
 export const readThread = async (filter, option) =>
   await threadCollection.findOne(filter, option);
 

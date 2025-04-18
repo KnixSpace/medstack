@@ -16,6 +16,24 @@ export const userSubscriptionPipeline = (userId) => [
   },
   {
     $lookup: {
+      from: "user",
+      localField: "spaceDetails.ownerId",
+      foreignField: "userId",
+      as: "ownerDetails",
+    },
+  },
+  {
+    $addFields: {
+      ownerName: {
+        $arrayElemAt: ["$ownerDetails.name", 0],
+      },
+      ownerAvatar: {
+        $arrayElemAt: ["$ownerDetails.avatar", 0],
+      },
+    },
+  },
+  {
+    $lookup: {
       from: "subscription",
       localField: "spaceId",
       foreignField: "spaceId",
@@ -55,6 +73,7 @@ export const userSubscriptionPipeline = (userId) => [
       createdOn: 0,
       updatedOn: 0,
       spaceDetails: 0,
+      ownerDetails: 0,
     },
   },
 ];
@@ -84,6 +103,9 @@ export const spaceSubscribersPipeline = (spaceId) => [
       _id: 0,
       userId: "$user.userId",
       name: "$user.name",
+      avatar: "$user.avatar",
+      isNewsletter: "$isNewsletter",
+      subscribedOn: "$createdOn",
     },
   },
 ];

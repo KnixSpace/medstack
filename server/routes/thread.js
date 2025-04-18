@@ -19,6 +19,7 @@ import {
   getMyThreads,
   getThreadDataForPreview,
   getOwnersThreads,
+  getThreadTags,
 } from "../controllers/index.js";
 import { validate } from "../utils/validate.js";
 import {
@@ -146,6 +147,8 @@ router.delete(
   validate([validateThreadCommentId, validateThreadCommentOwnership]),
   removeThreadComment
 );
+
+router.get("/list/tags", isAuthenticated(), getThreadTags);
 
 router.get("/list/owner/:ownerId", getOwnersThreads);
 

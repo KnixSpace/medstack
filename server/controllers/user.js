@@ -52,6 +52,20 @@ export const getEditorOwnerInfo = async (ctx) => {
   };
 };
 
+export const saveTags = async (ctx) => {
+  const { userId } = ctx.request.user;
+  const { tags } = ctx.request.body;
+
+  await updateUser(userId, {
+    selectedTags: tags,
+  });
+
+  ctx.status = 200;
+  ctx.body = {
+    message: "User tags updated successfully",
+  };
+};
+
 export const updateProfileData = async (ctx) => {
   const { userId } = ctx.request.user;
 

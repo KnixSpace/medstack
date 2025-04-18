@@ -4,9 +4,11 @@ import {
   readAllSpaces,
   readSpaceDetails,
   readSpacesWithSubscriberCounts,
+  readSuggestedSpaces,
   updateSpace,
 } from "../db/space.js";
 import {
+  createMultipleSubscriptions,
   createSubscription,
   deleteSubscription,
   readSpaceSubscribers,
@@ -41,6 +43,28 @@ export const modifySpace = async (ctx) => {
   ctx.body = { message: "space updated successfully" };
 };
 
+export const subscribeMultipleSpaces = async (ctx) => {
+  const { userId } = ctx.request.user;
+  const { spaces } = ctx.request.body || {};
+
+  if (!spaces?.length) {
+    ctx.body = { message: "no spaces to subscribe" };
+    return;
+  }
+
+  const subscriptions = spaces.map((space) => ({
+    subscriptionId: uuidV4(),
+    userId,
+    spaceId: space.spaceId,
+    isNewsletter: space.isNewsletter || false,
+    createdOn: new Date(),
+    updatedOn: new Date(),
+  }));
+
+  await createMultipleSubscriptions(subscriptions);
+  ctx.body = { message: "successfully subscribed to spaces" };
+};
+
 export const subscribeSpace = async (ctx) => {
   const { userId } = ctx.request.user;
   const { spaceId } = ctx.state.space;
@@ -72,6 +96,17 @@ export const toggleSpaceNewsletter = async (ctx) => {
   ctx.body = { message: "updated subscription" };
 };
 
+export const getSuggestedSpaces = async (ctx) => {
+  const { tags = [] } = ctx.request.body || {};
+
+  const spaces = await readSuggestedSpaces(tags);
+  if (!spaces.length) {
+    ctx.body = { message: "no space found", data: [] };
+    return;
+  }
+  ctx.body = { message: "spaces found", data: spaces };
+};
+
 export const getSpace = async (ctx) => {
   const { spaceId } = ctx.state.space;
   const space = await readSpaceDetails(spaceId);
@@ -99,7 +134,7 @@ export const getSpaceThreads = async (ctx) => {
   );
 
   if (!threads.list.length) {
-    ctx.body = { message: "no threads to show" };
+    ctx.body = { message: "no threads to show", data: [] };
     return;
   }
   ctx.body = {
@@ -112,7 +147,7 @@ export const getOwnerSpacesWithSubscribersCount = async (ctx) => {
   const { userId: ownerId } = ctx.state.owner;
   const spaces = await readSpacesWithSubscriberCounts(ownerId);
   if (!spaces.length) {
-    ctx.body = { message: "no space found" };
+    ctx.body = { message: "no space found", data: [] };
     return;
   }
   ctx.body = { message: "spaces found", data: spaces };
@@ -174,8 +209,11 @@ export const getUserSubscribedSpaces = async (ctx) => {
 
   const subscriptions = await readUserSubscriptions(userId);
   if (!subscriptions.length) {
-    ctx.body = { message: "no subscription found" };
+    ctx.body = { message: "no subscription found", data: [] };
     return;
   }
-  ctx.body = subscriptions;
+  ctx.body = {
+    message: "subscriptions found",
+    data: subscriptions,
+  };
 };

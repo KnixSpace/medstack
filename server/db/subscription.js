@@ -14,6 +14,9 @@ const subscriptionCollection = client
 export const createSubscription = async (subscription) =>
   await subscriptionCollection.insertOne(subscription);
 
+export const createMultipleSubscriptions = async (subscriptions) =>
+  await subscriptionCollection.insertMany(subscriptions);
+
 export const countsOfSubscriptions = async (filter) =>
   await subscriptionCollection.countDocuments(filter);
 
